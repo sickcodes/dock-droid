@@ -160,7 +160,7 @@ RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
 # From a VDI (Virtual Box Image)
 
 RUN [[ -z "${VDI}" ]] && qemu-img convert -f vdi -O qcow2 "${VDI}" android.qcow2
-
+# RUN [[ -z "${ISO}" ]] && -cdrom \
 
 RUN touch Launch.sh \
     && chmod +x ./Launch.sh \

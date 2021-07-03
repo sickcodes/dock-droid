@@ -14,33 +14,52 @@ Docker Android - Run QEMU Android x86 and Android ARM in a Docker! X11 Forwardin
 - supports BlissOS, custom images, VDI files, any Android x86 image, Xvfb headless mode
 - you can clone your container with `docker commit`
 
-### Requirements
-
-- 20GB disk space for bare minimum installation
-- virtualization should be enabled in your BIOS settings
-- a kvm-capable host
-- at least 50 GBs for `:auto` (half for the base image, half for your runtime image
-
-### TODO
-
-- documentation for security researchers
-- gpu acceleration
-- support for virt-manager
-
-
 ## Author
 
 This project is maintained by @sickcodes [Sick.Codes](https://sick.codes/). [(Twitter)](https://twitter.com/sickcodes)
 
 Additional credits can be found here: https://github.com/sickcodes/dock-droid/blob/master/CREDITS.md
 
-Epic thanks to [@BlissRoms](https://github.com/BlissRoms) who maintain absolutely incredible Android x86 images.
+Epic thanks to [@BlissRoms](https://github.com/BlissRoms) who maintain absolutely incredible Android x86 images. If you love their images, consider donating to the project: [https://blissos.org/](https://blissos.org/)!
 
 Special thanks to [@zhouziyang](https://github.com/zhouziyang) who maintains an even more native fork [Redroid](https://github.com/remote-android/redroid-doc)!
 
 This project is heavily based on Docker-OSX: https://github.com/sickcodes/Docker-OSX
 
 <a href="https://hub.docker.com/r/sickcodes/dock-droid"><img src="https://dockeri.co/image/sickcodes/dock-droid"/></a>
+
+### Requirements
+
+- 4GB disk space for bare minimum installation
+- virtualization should be enabled in your BIOS settings
+- a kvm-capable host
+
+## Initial setup
+Before you do anything else, you will need to turn on hardware virtualization in your BIOS. Precisely how will depend on your particular machine (and BIOS), but it should be straightforward.
+
+Then, you'll need QEMU and some other dependencies on your host:
+
+```bash
+# ARCH
+sudo pacman -S qemu libvirt dnsmasq virt-manager bridge-utils flex bison iptables-nft edk2-ovmf
+
+# UBUNTU DEBIAN
+sudo apt install qemu qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils virt-manager
+
+# CENTOS RHEL FEDORA
+sudo yum install libvirt qemu-kvm
+```
+
+Then, enable libvirt and load the KVM kernel module:
+
+```bash
+sudo systemctl enable --now libvirtd
+sudo systemctl enable --now virtlogd
+
+echo 1 | sudo tee /sys/module/kvm/parameters/ignore_msrs
+
+sudo modprobe kvm
+```
 
 ## Quick Start Dock-Droid
 
@@ -111,3 +130,31 @@ Bus 003 Device 003: ID 13d3:56a2 IMC Networks USB2.0 HD UVC WebCam
 
 Using `Bus` and `Device` as `hostbus` and `hostaddr`, include the following docker command:
 
+## VFIO Passthrough
+
+```
+  --privileged \
+  -e EXTRA="-device virtio-serial-pci -device usb-host,hostbus=1,hostport=2" \
+```
+
+## Building a headless container to run remotely with secure VNC
+
+Add the following line:
+
+`-e EXTRA="-display none -vnc 0.0.0.0:99,password=on"`
+
+In the Docker terminal, press `enter` until you see `(qemu)`.
+
+Type `change vnc password someusername`
+
+Enter a password for your new vnc username^.
+
+You also need the container IP: `docker inspect <containerid> | jq -r '.[0].NetworkSettings.IPAddress'`
+
+Or `ip n` will usually show the container IP first.
+
+Now VNC connect using the Docker container IP, for example `172.17.0.2:5999`
+
+Remote VNC over SSH: `ssh -N root@1.1.1.1 -L  5999:172.17.0.2:5999`, where `1.1.1.1` is your remote server IP and `172.17.0.2` is your LAN container IP.
+
+Now you can direct connect VNC to any container built with this command!
