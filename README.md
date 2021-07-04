@@ -9,6 +9,7 @@ Docker Android - Run QEMU Android x86 and Android ARM in a Docker! X11 Forwardin
 - SCRCPY enabled (`localhost:5555`)
 - WebCam forwarding enabled (`/dev/video0`)
 - Audio forwarding enabled (`/dev/snd`)
+- GPU passthrough
 - X11 forwarding is enabled
 - runs on top of QEMU + KVM
 - supports BlissOS, custom images, VDI files, any Android x86 image, Xvfb headless mode
@@ -77,8 +78,11 @@ docker run -it \
 
 Want to use your WebCam and Audio too?
 
+`v4l2-ctl --list-devices`
+
 ```bash
 docker run -it \
+    --privileged \
     --device /dev/kvm \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -e "DISPLAY=${DISPLAY:-:0.0}" \
@@ -87,6 +91,22 @@ docker run -it \
     --device /dev/video0 \
     -e EXTRA='-device usb-host,hostbus=3,hostaddr=3' \
     --device /dev/snd \
+    sickcodes/dock-droid:latest
+```
+
+Want to use your graphics card + OpenGL?
+
+```bash
+docker run -it \
+    --privileged \
+    --device /dev/kvm \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e "DISPLAY=${DISPLAY:-:0.0}" \
+    -p 5555:5555 \
+    -p 50922:10022 \
+    --device=/dev/dri \
+    --group-add video \
+    -e EXTRA='-display sdl,gl=on' \
     sickcodes/dock-droid:latest
 ```
 
@@ -102,7 +122,9 @@ In case you're interested, contact [@sickcodes on Twitter](https://twitter.com/s
 
 ## License/Contributing
 
-Docker-OSX is licensed under the [GPL v3+](LICENSE), also known as the GPL v3 or later License. Contributions are welcomed and immensely appreciated. You are allowd to use Dock-Droid as a tool to create proprietary software, as long as you follow any other license within the software..
+Docker-OSX is licensed under the [GPL v3+](LICENSE), also known as the GPL v3 or later License. Contributions are welcomed and immensely appreciated.
+
+Don't be shy, [the GPLv3+](https://www.gnu.org/licenses/quick-guide-gplv3.html) allows you to use Dock-Droid as a tool to create proprietary software, as long as you follow any other license within the software.
 
 ## Disclaimer
 

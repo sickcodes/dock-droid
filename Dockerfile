@@ -25,7 +25,6 @@ MAINTAINER 'https://twitter.com/sickcodes' <https://sick.codes>
 
 SHELL ["/bin/bash", "-c"]
 
-ARG CDROM_IMAGE_URL=https://sourceforge.net/projects/blissos-dev/files/Android-Generic/PC/bliss/R/gapps/BlissOS-14.3-x86_64-202106181339_k-google-5.4.112-lts-ax86_m-r_emugapps_cros-hd_gearlock.iso
 ARG SIZE=10G
 ARG VDI=
 
@@ -94,6 +93,10 @@ ARG BRANCH=master
 ARG REPO='https://github.com/sickcodes/dock-droid.git'
 RUN git clone --recurse-submodules --depth 1 --branch "${BRANCH}" "${REPO}"
 
+WORKDIR /home/arch/dock-droid
+
+RUN qemu-img create -f qcow2 /home/arch/dock-droid/android.qcow2 25G
+
 RUN touch ./enable-ssh.sh \
     && chmod +x ./enable-ssh.sh \
     && tee -a enable-ssh.sh <<< '[[ -f /etc/ssh/ssh_host_rsa_key ]] || \' \
@@ -114,9 +117,9 @@ RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
 # RUN sudo systemctl enable libvirtd.service
 # RUN sudo systemctl enable virtlogd.service
 
-# From a VDI (Virtual Box Image)
-
 ARG COMPLETE=true
+
+ARG CDROM_IMAGE_URL=https://sourceforge.net/projects/blissos-dev/files/Android-Generic/PC/bliss/R/gapps/BlissOS-14.3-x86_64-202106181339_k-google-5.4.112-lts-ax86_m-r_emugapps_cros-hd_gearlock.iso
 
 # use the COMPLETE arg, for a complete image, ready to boot.
 # otherwise use your own image: -v "$PWD/disk.img":/image
@@ -128,7 +131,6 @@ RUN if [[ "${COMPLETE}" ]]; then \
         && wget ${WGET_OPTIONS} "${CDROM_IMAGE_URL}" \
     ; fi
 
-RUN qemu-img create -f qcow2 /home/arch/dock-droid/android.qcow2 25G
 
 # RUN [[ -z "${VDI}" ]] && qemu-img convert -f vdi -O qcow2 "${VDI}" android.qcow2
 # RUN [[ -z "${ISO}" ]] && -cdrom \
@@ -180,7 +182,7 @@ RUN touch Launch.sh \
     && tee -a Launch.sh <<< '-smp ${CPU_STRING:-$(nproc)} \' \
     && tee -a Launch.sh <<< '-machine q35,${KVM-"accel=kvm:tcg"} \' \
     && tee -a Launch.sh <<< '-smp ${CPU_STRING:-${SMP:-4},cores=${CORES:-4}} \' \
-    && tee -a Launch.sh <<< '-hda "./${IMAGE_PATH}" \' \
+    && tee -a Launch.sh <<< '-hda "${IMAGE_PATH}" \' \
     && tee -a Launch.sh <<< '-usb -device usb-kbd -device usb-tablet \' \
     && tee -a Launch.sh <<< '-smbios type=2 \' \
     && tee -a Launch.sh <<< '-audiodev ${AUDIO_DRIVER:-alsa},id=hda -device ich9-intel-hda -device hda-duplex,audiodev=hda \' \
@@ -189,7 +191,7 @@ RUN touch Launch.sh \
     && tee -a Launch.sh <<< '-device ${NETWORKING:-vmxnet3},netdev=net0,id=net0,mac=${MAC_ADDRESS:-00:11:22:33:44:55} \' \
     && tee -a Launch.sh <<< '-monitor stdio \' \
     && tee -a Launch.sh <<< '-vga vmware \' \
-    && tee -a Launch.sh <<< '-cdrom "${CDROM:-"$(basename "${CDROM_IMAGE_URL}")"}" \' \
+    && tee -a Launch.sh <<< '-cdrom "${CDROM:-${CDROM}}" \' \
     && tee -a Launch.sh <<< '${WEBCAM:-} \' \
     && tee -a Launch.sh <<< '${EXTRA:-}'
 
