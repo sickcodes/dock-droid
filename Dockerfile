@@ -25,9 +25,6 @@ MAINTAINER 'https://twitter.com/sickcodes' <https://sick.codes>
 
 SHELL ["/bin/bash", "-c"]
 
-ARG SIZE=10G
-ARG VDI=
-
 # OPTIONAL: Arch Linux server mirrors for super fast builds
 # set RANKMIRRORS to any value other that nothing, e.g. -e RANKMIRRORS=true
 ARG RANKMIRRORS
@@ -95,8 +92,6 @@ RUN git clone --recurse-submodules --depth 1 --branch "${BRANCH}" "${REPO}"
 
 WORKDIR /home/arch/dock-droid
 
-RUN qemu-img create -f qcow2 /home/arch/dock-droid/android.qcow2 25G
-
 RUN touch ./enable-ssh.sh \
     && chmod +x ./enable-ssh.sh \
     && tee -a enable-ssh.sh <<< '[[ -f /etc/ssh/ssh_host_rsa_key ]] || \' \
@@ -131,6 +126,9 @@ RUN if [[ "${COMPLETE}" ]]; then \
         && wget ${WGET_OPTIONS} "${CDROM_IMAGE_URL}" \
     ; fi
 
+ARG QCOW_SIZE=50G
+
+RUN qemu-img create -f qcow2 /home/arch/dock-droid/android.qcow2 "${QCOW_SIZE}"
 
 # RUN [[ -z "${VDI}" ]] && qemu-img convert -f vdi -O qcow2 "${VDI}" android.qcow2
 # RUN [[ -z "${ISO}" ]] && -cdrom \

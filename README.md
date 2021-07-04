@@ -9,7 +9,7 @@ Docker Android - Run QEMU Android x86 and Android ARM in a Docker! X11 Forwardin
 - SCRCPY enabled (`localhost:5555`)
 - WebCam forwarding enabled (`/dev/video0`)
 - Audio forwarding enabled (`/dev/snd`)
-- GPU passthrough
+- GPU passthrough (`/dev/dri`)
 - X11 forwarding is enabled
 - runs on top of QEMU + KVM
 - supports BlissOS, custom images, VDI files, any Android x86 image, Xvfb headless mode
