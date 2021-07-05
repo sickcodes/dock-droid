@@ -83,6 +83,8 @@ RUN tee -a sshd_config <<< 'AllowTcpForwarding yes' \
 
 USER arch
 
+ENV USER arch
+
 WORKDIR /home/arch
 
 # optional --build-arg to change branches for testing
@@ -133,9 +135,6 @@ RUN qemu-img create -f qcow2 /home/arch/dock-droid/android.qcow2 "${QCOW_SIZE}"
 # RUN [[ -z "${VDI}" ]] && qemu-img convert -f vdi -O qcow2 "${VDI}" android.qcow2
 # RUN [[ -z "${ISO}" ]] && -cdrom \
 
-USER arch
-
-ENV USER arch
 
 #### SPECIAL RUNTIME ARGUMENTS BELOW
 
