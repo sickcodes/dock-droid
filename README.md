@@ -1,6 +1,6 @@
 # Dock-Droid · [Follow @sickcodes on Twitter](https://twitter.com/sickcodes)
 
-![Running Android x86 & Android ARM in a Docker container](/running-mac-inside-docker-qemu.png?raw=true "OSX KVM DOCKER")
+![Running Android x86 & Android ARM in a Docker container](/dock-droid-docker-android.png?raw=true "ANDROID KVM IN DOCKER CONTAINER")
 
 Docker Android - Run QEMU Android x86 and Android ARM in a Docker! X11 Forwarding! CI/CD for Android!
 
@@ -153,9 +153,11 @@ For more sophisticated endeavours, we offer the following support services:
 
 In case you're interested, contact [@sickcodes on Twitter](https://twitter.com/sickcodes) or submit a contact form [here](https://sick.codes/contact).
 
+![How to Install Bliss OS](/bliss_os_installation_instructions_docker.gif?raw=true "How to Install Bliss OS")
+
 ## License/Contributing
 
-Docker-OSX is licensed under the [GPL v3+](LICENSE), also known as the GPL v3 or later License. Contributions are welcomed and immensely appreciated.
+dock-droid is licensed under the [GPL v3+](LICENSE), also known as the GPL v3 or later License. Contributions are welcomed and immensely appreciated.
 
 Don't be shy, [the GPLv3+](https://www.gnu.org/licenses/quick-guide-gplv3.html) allows you to use Dock-Droid as a tool to create proprietary software, as long as you follow any other license within the software.
 
