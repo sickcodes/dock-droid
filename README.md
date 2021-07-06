@@ -33,7 +33,7 @@ This project is heavily based on Docker-OSX: https://github.com/sickcodes/Docker
 
 - 4GB disk space for bare minimum installation
 - virtualization should be enabled in your BIOS settings
-- a kvm-capable host
+- a kvm-capable host (not required, but slow otherwise)
 
 ## Initial setup
 Before you do anything else, you will need to turn on hardware virtualization in your BIOS. Precisely how will depend on your particular machine (and BIOS), but it should be straightforward.
@@ -72,9 +72,10 @@ docker run -it \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -e "DISPLAY=${DISPLAY:-:0.0}" \
     -p 5555:5555 \
-    -p 50922:10022 \
     sickcodes/dock-droid:latest
 ```
+
+Increase RAM by adding this line: `-e RAM=4 \`
 
 Want to use your WebCam and Audio too?
 
@@ -94,7 +95,7 @@ docker run -it \
     sickcodes/dock-droid:latest
 ```
 
-Want to use your graphics card + OpenGL?
+Want to use SwiftShader acceleration?
 
 ```bash
 docker run -it \
@@ -108,6 +109,38 @@ docker run -it \
     --group-add video \
     -e EXTRA='-display sdl,gl=on' \
     sickcodes/dock-droid:latest
+```
+
+In development by BlissOS team: mesa graphics card + OpenGL3.2.
+
+### Use your own image
+
+Use any generic ISO or use your own Android AOSP raw image or qcow2
+
+Where, `"${PWD}/disk.qcow2"` is your image in the host system.
+```bash
+docker run -it \
+    -v "${PWD}/disk.qcow2:/home/arch/android.qcow2" \
+    --privileged
+    --device /dev/kvm \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e "DISPLAY=${DISPLAY:-:0.0}" \
+    -p 5555:5555 \
+    -p 50922:10022 \
+    sickcodes/dock-droid:latest
+```
+
+### Custom Build
+
+
+```bash
+
+CDROM_IMAGE_URL='https://sourceforge.net/projects/blissos-x86/files/Official/bleeding_edge/Generic%20builds%20-%20Pie/11.13/Bliss-v11.13--OFFICIAL-20201113-1525_x86_64_k-k4.19.122-ax86-ga-rmi_m-20.1.0-llvm90_dgc-t3_gms_intelhd.iso'
+
+docker build \
+    -t dock-droid-custom \
+    -e CDROM_IMAGE_URL="${CDROM_IMAGE_URL}" .
+
 ```
 
 ### Professional support
