@@ -81,6 +81,15 @@ Want to use your WebCam and Audio too?
 
 `v4l2-ctl --list-devices`
 
+`lsusb` to get the `hostbus` and `hostaddr`
+
+```console
+Bus 003 Device 003: ID 13d3:56a2 IMC Networks USB2.0 HD UVC WebCam
+```
+
+Would be `-device usb-host,hostbus=3,hostaddr=3`
+
+
 ```bash
 docker run -it \
     --privileged \
@@ -113,20 +122,31 @@ docker run -it \
 
 In development by BlissOS team: mesa graphics card + OpenGL3.2.
 
-### Use your own image
+### Use your own image/naked version
+
+```bash
+
+# get container name from 
+docker ps -a
+
+# copy out the image
+docker cp container_name:/home/arch/dock-droid/android.qcow2 .
+```
 
 Use any generic ISO or use your own Android AOSP raw image or qcow2
 
 Where, `"${PWD}/disk.qcow2"` is your image in the host system.
 ```bash
 docker run -it \
-    -v "${PWD}/disk.qcow2:/home/arch/android.qcow2" \
-    --privileged
+    -v "${PWD}/android.qcow2:/home/arch/dock-droid/android.qcow2" \
+    --privileged \
     --device /dev/kvm \
+    --device /dev/video0 \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -e "DISPLAY=${DISPLAY:-:0.0}" \
     -p 5555:5555 \
     -p 50922:10022 \
+    -e EXTRA='-device usb-host,hostbus=3,hostaddr=3' \
     sickcodes/dock-droid:latest
 ```
 
