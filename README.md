@@ -143,6 +143,32 @@ docker build \
 
 ```
 
+
+### How to connect using ADB
+
+In the Android terminal emulator:
+
+Edit `/default.prop`
+
+Change `ro.adb.secure=1` to `ro.adb.secure=0`
+
+E.g.
+
+```bash
+su
+sed -i -e 's/ro\.adb\.secure\=1/ro\.adb\.secure\=0/' /default.prop
+
+```
+
+In the Android terminal emulator, run `adbd`
+
+Then from the host, you can can connect using either:
+`adb connect localhost:5555`
+
+`adb connect 172.17.0.2:5555`
+
+
+
 ### Professional support
 
 For more sophisticated endeavours, we offer the following support services:
