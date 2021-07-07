@@ -117,7 +117,8 @@ RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
 ARG COMPLETE=true
 
 # ARG CDROM_IMAGE_URL=https://sourceforge.net/projects/blissos-x86/files/Official/bleeding_edge/Generic%20builds%20-%20Pie/11.13/Bliss-v11.13--OFFICIAL-20201113-1525_x86_64_k-k4.19.122-ax86-ga-rmi_m-20.1.0-llvm90_dgc-t3_gms_intelhd.iso
-ARG CDROM_IMAGE_URL=https://sourceforge.net/projects/blissos-dev/files/Android-Generic/PC/bliss/R/gapps/BlissOS-14.3-x86_64-202106181339_k-google-5.4.112-lts-ax86_m-r_emugapps_cros-hd_gearlock.iso
+# ARG CDROM_IMAGE_URL=https://sourceforge.net/projects/blissos-dev/files/Android-Generic/PC/bliss/R/gapps/BlissOS-14.3-x86_64-202106181339_k-google-5.4.112-lts-ax86_m-r_emugapps_cros-hd_gearlock.iso
+ARG CDROM_IMAGE_URL=https://sourceforge.net/projects/blissos-dev/files/Android-Generic/PC/bliss/R/gapps/BlissOS-14.3-x86_64-202106261907_k-android12-5.10.46-ax86_m-21.1.3_r-x86_emugapps_cros-hd.iso
 
 ENV CDROM_IMAGE_URL="${CDROM_IMAGE_URL}"
 
