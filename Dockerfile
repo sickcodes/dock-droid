@@ -116,7 +116,8 @@ RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
 
 ARG COMPLETE=true
 
-ARG CDROM_IMAGE_URL=https://sourceforge.net/projects/blissos-x86/files/Official/bleeding_edge/Generic%20builds%20-%20Pie/11.13/Bliss-v11.13--OFFICIAL-20201113-1525_x86_64_k-k4.19.122-ax86-ga-rmi_m-20.1.0-llvm90_dgc-t3_gms_intelhd.iso
+# ARG CDROM_IMAGE_URL=https://sourceforge.net/projects/blissos-x86/files/Official/bleeding_edge/Generic%20builds%20-%20Pie/11.13/Bliss-v11.13--OFFICIAL-20201113-1525_x86_64_k-k4.19.122-ax86-ga-rmi_m-20.1.0-llvm90_dgc-t3_gms_intelhd.iso
+ARG CDROM_IMAGE_URL=https://sourceforge.net/projects/blissos-dev/files/Android-Generic/PC/bliss/R/gapps/BlissOS-14.3-x86_64-202106181339_k-google-5.4.112-lts-ax86_m-r_emugapps_cros-hd_gearlock.iso
 
 ENV CDROM_IMAGE_URL="${CDROM_IMAGE_URL}"
 
@@ -127,7 +128,7 @@ ARG WGET_OPTIONS=
 
 RUN if [[ "${COMPLETE}" ]]; then \
         echo "Downloading 1GB image... This step might take a while... Press Ctrl+C if you want to abort." \
-        && wget ${WGET_OPTIONS} "${CDROM_IMAGE_URL}" \
+        && wget ${WGET_OPTIONS} "${CDROM_IMAGE_URL}" || exit 1 \
     ; fi
 
 ARG QCOW_SIZE=50G
@@ -177,7 +178,7 @@ RUN touch Launch.sh \
     && tee -a Launch.sh <<< 'sudo chown -R $(id -u):$(id -g) /dev/video{0..10} 2>/dev/null || true' \
     && tee -a Launch.sh <<< 'exec qemu-system-x86_64 -m ${RAM:-4}000 \' \
     && tee -a Launch.sh <<< '-enable-kvm \' \
-    && tee -a Launch.sh <<< '-cpu host,+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check, \' \
+    && tee -a Launch.sh <<< '-cpu host \' \
     && tee -a Launch.sh <<< '-smp ${CPU_STRING:-$(nproc)} \' \
     && tee -a Launch.sh <<< '-machine q35,${KVM-"accel=kvm:tcg"} \' \
     && tee -a Launch.sh <<< '-smp ${CPU_STRING:-${SMP:-4},cores=${CORES:-4}} \' \
