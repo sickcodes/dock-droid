@@ -198,5 +198,6 @@ RUN touch Launch.sh \
 VOLUME ["/tmp/.X11-unix"]
 
 CMD export CDROM="$(basename "${CDROM_IMAGE_URL}")" \
+    && touch ./android.qcow2 ./*.iso \
     && ./enable-ssh.sh \
     && /bin/bash -c ./Launch.sh
