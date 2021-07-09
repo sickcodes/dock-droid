@@ -44,8 +44,14 @@ ENV REVISION=r11-r36
 
 ENV MANIFEST_REPO=https://github.com/BlissRoms-x86/manifest.git
 
+ENV MODE=init
+# ENV MODE=sync
+
 WORKDIR /blissos-r36
 # VOLUME ["/blissos-r36"]
 
-CMD yes | repo init -u "${MANIFEST_REPO}" -b "${REVISION}" \
-    && yes | repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all) --optimized-fetch --prune
+CMD { [ "${MODE}" = init ] && { yes | repo init -u "${MANIFEST_REPO}" -b "${REVISION}" ; } \
+    ; [ "${MODE}" = sync ] && { yes | repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all) --optimized-fetch --prune ; } \
+    ; }
+
+
