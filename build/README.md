@@ -6,7 +6,7 @@ mkdir /mnt/volume_nyc3_01/blissos-r36
 
 cd /mnt/volume_nyc3_01/blissos-r36
 
-wget https://github.com/sickcodes/dock-droid/build/Dockerfile
+wget https://raw.githubusercontent.com/sickcodes/dock-droid/master/build/Dockerfile
 
 docker build -t blissos-builder .
 
