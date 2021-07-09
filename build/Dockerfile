@@ -23,7 +23,7 @@ RUN apt install git-core gnupg flex bison maven gperf build-essential zip curl z
 RUN git config --global user.name "John Doe"
 RUN git config --global user.email johndoe@example.com
 
-RUN apt install curl wget python -y
+RUN apt install curl wget python golang -y
 
 # install repo command
 RUN curl https://storage.googleapis.com/git-repo-downloads/repo > /bin/repo \
