@@ -1,10 +1,12 @@
 # BlissOS Image Builder
 
 ```bash
-# create a persistent folder on the host for building stuff
-mkdir /mnt/volume_nyc3_01/blissos-r36
+BUILD_DIRECTORY=/mnt/volume_nyc3_01
 
-cd /mnt/volume_nyc3_01/blissos-r36
+# create a persistent folder on the host for building stuff
+mkdir "${BUILD_DIRECTORY}/blissos-r36"
+
+cd "${BUILD_DIRECTORY}/blissos-r36"
 
 wget https://raw.githubusercontent.com/sickcodes/dock-droid/master/build/Dockerfile
 
