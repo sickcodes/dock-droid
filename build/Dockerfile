@@ -10,7 +10,7 @@ FROM ubuntu:latest
 
 RUN apt update -y \
     && apt upgrade -y \
-    && apt install openjdk-8-jdk-headless \
+    && apt install openjdk-8-jdk-headless -y \
     && update-alternatives --config java \
     && update-alternatives --config javac
 
