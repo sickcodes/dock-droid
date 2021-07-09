@@ -13,7 +13,9 @@ wget https://raw.githubusercontent.com/sickcodes/dock-droid/master/build/Dockerf
 docker build -t blissos-builder .
 
 docker run -it \
-    -v /mnt/volume_nyc3_01/blissos-r36:/blissos-r36 \
+    -e REVISION=r11-r36 \
+    -e MANIFEST_REPO=https://github.com/BlissRoms-x86/manifest.git \
+    -v "${BUILD_DIRECTORY}/blissos-r36:/blissos-r36" \
     blissos-builder
 
 ```
