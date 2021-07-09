@@ -1,12 +1,16 @@
 #!/usr/bin/docker
 # Title:            blissos_x86 builder
 # Author:           Sick.Codes https://twitter.com/sickcodes
-# Version:          1.0
+# Version:          1.1
 # License:          GPLv3+
 # Website:          https://blissos.org
 # Usage:            https://github.com/sickcodes/dock-droid/build
 
 FROM ubuntu:latest
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
 
 RUN apt update -y \
     && apt upgrade -y \
@@ -19,10 +23,29 @@ RUN apt install git-core gnupg flex bison maven gperf build-essential zip curl z
 RUN git config --global user.name "John Doe"
 RUN git config --global user.email johndoe@example.com
 
+RUN apt install curl wget python -y
+
+# install repo command
+RUN curl https://storage.googleapis.com/git-repo-downloads/repo > /bin/repo \
+    && chmod a+x /bin/repo
+
+WORKDIR /root
+
+ENV CMDLINE_TOOLS_VERSION=commandlinetools-linux-6858069_latest.zip
+RUN wget -O cmdline-tools.zip "https://dl.google.com/android/repository/${CMDLINE_TOOLS_VERSION}" \
+    && unzip cmdline-tools.zip \
+    && cp -r ./cmdline-tools/lib /lib
+
+ENV PATH="/root/cmdline-tools/bin:${PATH}"
+
 # RUN mkdir /blissos-r36
+
+ENV REVISION=r11-r36
+
+ENV MANIFEST_REPO=https://github.com/BlissRoms-x86/manifest.git
 
 WORKDIR /blissos-r36
 # VOLUME ["/blissos-r36"]
 
-CMD repo init -u https://github.com/BlissRoms-x86/manifest.git -b r11-r36 \
-    && repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all) --optimized-fetch --prune
+CMD yes | repo init -u "${MANIFEST_REPO}" -b "${REVISION}" \
+    && yes | repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all) --optimized-fetch --prune
