@@ -1,6 +1,29 @@
 # BlissOS Image Builder
 
+Make and add a non-root user
 ```bash
+
+USERADD=user
+useradd "${USERADD}" -p "${USERADD}"
+tee -a /etc/sudoers <<< "${USERADD} ALL=(ALL) NOPASSWD: ALL"
+mkdir -p "/home/${USERADD}"
+chown "${USERADD}:${USERADD}" "/home/${USERADD}"
+
+# passwd user <<EOF
+# 1000
+# 1000
+# EOF
+
+chsh -s /bin/bash "${USERADD}"
+
+usermod -aG docker "${USERADD}"
+
+su user
+
+```
+
+```bash
+
 BUILD_DIRECTORY=/mnt/volume_nyc3_01
 
 # create a persistent folder on the host for building stuff
