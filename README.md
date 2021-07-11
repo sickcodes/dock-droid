@@ -235,10 +235,36 @@ Using `Bus` and `Device` as `hostbus` and `hostaddr`, include the following dock
 
 ## VFIO Passthrough
 
+TODO
+
 ```
-  --privileged \
-  -e EXTRA="-device virtio-serial-pci -device usb-host,hostbus=1,hostport=2" \
+#  --privileged \
+#  -e EXTRA="-device virtio-serial-pci -device usb-host,hostbus=1,hostport=2" \
 ```
+
+## GPU Sharing
+
+```bash
+
+sudo tee -a qemu.conf <<'EOF'
+cgroup_device_acl = [
+    "/dev/null", "/dev/full", "/dev/zero",
+    "/dev/random", "/dev/urandom",
+    "/dev/ptmx", "/dev/kvm",
+    "/dev/dri/card0",
+    "/dev/dri/card1",
+    "/dev/dri/renderD128"
+]
+
+EOF
+
+sudo systemctl restart libvirtd
+
+```
+
+
+
+
 
 ## Building a headless container to run remotely with secure VNC
 
