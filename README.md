@@ -286,8 +286,7 @@ Add the following lines when you are ready:
 
 ## GPU Sharing
 
-
-WIP
+Work in progress
 
 ```bash
 
@@ -296,14 +295,44 @@ cgroup_device_acl = [
     "/dev/null", "/dev/full", "/dev/zero",
     "/dev/random", "/dev/urandom",
     "/dev/ptmx", "/dev/kvm",
+    "/dev/vfio/vfio",
     "/dev/dri/card0",
     "/dev/dri/card1",
     "/dev/dri/renderD128"
 ]
-
 EOF
 
+# --device /dev/video0 \
+# --device /dev/video1 \
+
+grep "video\|render" /etc/group
+
+# render:x:989:
+# video:x:986:sddm
+
+sudo usermod -aG video "${USER}"
+
 sudo systemctl restart libvirtd
+
+docker run -it \
+    -v "${PWD}/android.qcow2:/home/arch/dock-droid/android.qcow2" \
+    --privileged \
+    --device /dev/kvm \
+    --device /dev/video1 \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e "DISPLAY=${DISPLAY:-:0.0}" \
+    -p 5555:5555 \
+    -p 50922:10022 \
+    --user 1000:1000 \
+    --group-add=966 \
+    --group-add=989 \
+    --device /dev/dri/renderD128:/dev/dri/renderD128 \
+    --device /dev/dri/card0:/dev/dri/card0 \
+    --device /dev/dri/card1:/dev/dri/card1 \
+    sickcodes/dock-droid:naked
+
+# pick which graphics card
+# --device /dev/dri/card0:/dev/dri/card0 \
 
 ```
 
