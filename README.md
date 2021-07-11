@@ -75,6 +75,19 @@ docker run -it \
     sickcodes/dock-droid:latest
 ```
 
+### No Image (:naked) [![https://img.shields.io/docker/image-size/sickcodes/dock-droid/naked?label=sickcodes%2Fdock-droid%3Anaked](https://img.shields.io/docker/image-size/sickcodes/dock-droid/naked?label=sickcodes%2Fdock-droid%3Anaked)](https://hub.docker.com/r/sickcodes/dock-droid/tags?page=1&ordering=last_updated)
+
+```bash
+docker run -it \
+    --device /dev/kvm \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e "DISPLAY=${DISPLAY:-:0.0}" \
+    -v "${PWD}/android.qcow2:/home/arch/dock-droid/android.qcow2" \
+    -p 5555:5555 \
+    sickcodes/dock-droid:latest
+```
+
+
 Increase RAM by adding this line: `-e RAM=4 \`
 
 Want to use your WebCam and Audio too?
@@ -163,6 +176,12 @@ docker build \
 
 ```
 
+### Naked Container
+
+Reduces the image size by 600Mb if you are using a local directory disk image:
+```
+docker cp  image_name /home/arch/dock-droid/android.qcow2 .
+```
 
 ### How to connect using ADB
 
@@ -235,18 +254,44 @@ Using `Bus` and `Device` as `hostbus` and `hostaddr`, include the following dock
 
 ## VFIO Passthrough
 
-TODO
+*Waiting for public `mesa` builds: https://blissos.org/*
 
-```
-#  --privileged \
-#  -e EXTRA="-device virtio-serial-pci -device usb-host,hostbus=1,hostport=2" \
+When these hardware accelerated images are released, you can follow the Issue opened by: [@M1cha](https://github.com/M1cha)
+
+See [https://github.com/sickcodes/dock-droid/issues/2](https://github.com/sickcodes/dock-droid/issues/2)
+
+> the online documentation for that is very bad and mostly outdated(due to kernel and qemu updates). But here's some references that helped me set it up several times:
+> 
+[https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF#Plain_QEMU_without_libvirt](https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF#Plain_QEMU_without_libvirt)
+> 
+[https://www.kernel.org/doc/Documentation/vfio.txt](https://www.kernel.org/doc/Documentation/vfio.txt)
+> 
+> 
+> the general summary:
+> 
+>     * make sure your hardware supports VT-d/AMD-VI and UEFI and linux have it enabled
+> 
+>     * figure out which devices are in the same iommu group
+> 
+>     * detach all drivers from those devices
+> 
+>     * attach vfio-pci to those devices
+
+Add the following lines when you are ready:
+
+```bash
+    --privileged \
+    -e EXTRA="-device vfio-pci,host=04:00.0' \
 ```
 
 ## GPU Sharing
 
+
+WIP
+
 ```bash
 
-sudo tee -a qemu.conf <<'EOF'
+sudo tee -a /etc/libvirt/qemu.conf <<'EOF'
 cgroup_device_acl = [
     "/dev/null", "/dev/full", "/dev/zero",
     "/dev/random", "/dev/urandom",
