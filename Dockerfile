@@ -63,17 +63,6 @@ RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
     && bsdtar -C / -xvf "${patched_glibc}" || echo "Everything is fine."
 # TEMP-FIX for pacman issue
 
-RUN git clone https://aur.archlinux.org/android-sdk-platform-tools.git \
-    && cd android-sdk-platform-tools \
-    && makepkg -si --nocheck --force --noconfirm \
-    ; source /etc/profile.d/android-sdk-platform-tools.sh || exit 1
-
-# TEMP-FIX for pacman issue
-RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
-    && curl -LO "https://raw.githubusercontent.com/sickcodes/dock-droid/master/${patched_glibc}" \
-    && bsdtar -C / -xvf "${patched_glibc}" || echo "Everything is fine."
-# TEMP-FIX for pacman issue
-
 # allow ssh to container
 RUN mkdir -m 700 /root/.ssh
 
@@ -97,6 +86,19 @@ USER arch
 ENV USER arch
 
 WORKDIR /home/arch
+
+RUN git clone https://aur.archlinux.org/android-sdk-platform-tools.git \
+    && cd android-sdk-platform-tools \
+    && makepkg -si --nocheck --force --noconfirm \
+    ; source /etc/profile.d/android-sdk-platform-tools.sh || exit 1
+
+WORKDIR /home/arch
+
+# TEMP-FIX for pacman issue
+RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
+    && curl -LO "https://raw.githubusercontent.com/sickcodes/dock-droid/master/${patched_glibc}" \
+    && bsdtar -C / -xvf "${patched_glibc}" || echo "Everything is fine."
+# TEMP-FIX for pacman issue
 
 # optional --build-arg to change branches for testing
 ARG BRANCH=master
