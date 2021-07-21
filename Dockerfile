@@ -115,7 +115,7 @@ RUN touch ./enable-ssh.sh \
     && tee -a enable-ssh.sh <<< 'sudo /usr/bin/ssh-keygen -A' \
     && tee -a enable-ssh.sh <<< 'nohup sudo /usr/bin/sshd -D &'
 
-RUN yes | sudo pacman -Syu qemu libvirt dnsmasq virt-manager bridge-utils openresolv jack ebtables edk2-ovmf netctl libvirt-dbus wget --overwrite --noconfirm \
+RUN yes | sudo pacman -Syu qemu libvirt libguestfs linux linux-headers dnsmasq virt-manager bridge-utils openresolv jack ebtables edk2-ovmf netctl libvirt-dbus wget --overwrite --noconfirm \
     && yes | sudo pacman -Scc
 
 # TEMP-FIX for pacman issue
@@ -152,6 +152,25 @@ RUN qemu-img create -f qcow2 /home/arch/dock-droid/android.qcow2 "${QCOW_SIZE}"
 # RUN [[ -z "${VDI}" ]] && qemu-img convert -f vdi -O qcow2 "${VDI}" android.qcow2
 # RUN [[ -z "${ISO}" ]] && -cdrom \
 
+#### Mount disk inside container
+
+sudo modprobe nbd \
+sudo qemu-nbd --connect=/dev/nbd0 android2.qcow2 -f qcow2 \
+sudo fdisk /dev/nbd0 -l\
+mkdir /tmp/image /tmp/system
+sudo mount /dev/nbd0p1 /tmp/image
+
+sudo mount /tmp/image/bliss-x86-11.13/system.img /tmp/system
+sudo tee -a /tmp/system/build.prop <<< 'ro.adb.secure=0'
+sudo umount /tmp/system
+sudo umount /tmp/image
+sudo qemu-nbd -d /dev/nbd0
+
+
+
+RUN sudo guestfish -a /home/user/bliss/android2.qcow2 \  
+
+sudo guestmount -a android.qcow2 -m /dev/vg0 /mnt
 
 #### SPECIAL RUNTIME ARGUMENTS BELOW
 
@@ -174,6 +193,10 @@ ENV KVM='accel=kvm:tcg'
 
 # ENV NETWORKING=e1000-82545em
 ENV NETWORKING=vmxnet3
+
+# add libguestfs debug output
+ENV LIBGUESTFS_DEBUG=1
+ENV LIBGUESTFS_TRACE=1
 
 # dynamic RAM options for runtime
 ENV RAM=4

@@ -183,6 +183,37 @@ Reduces the image size by 600Mb if you are using a local directory disk image:
 docker cp  image_name /home/arch/dock-droid/android.qcow2 .
 ```
 
+### Modify image
+
+Mount the main `qcow2` file using `libguestfstools`
+
+Then, mount other Android related disks, from inside that image.
+
+GRUB is also in there.
+
+```bash
+# enable qemu-nbd for network device mounting
+sudo modprobe nbd
+sudo qemu-nbd --connect=/dev/nbd0 android.qcow2 -f qcow2
+sudo fdisk /dev/nbd0 -l
+
+# make a folder to mount the whole resizable image 
+# make another to mount the raw Android image within that resizable image.
+mkdir -p /tmp/image /tmp/system
+sudo mount /dev/nbd0p1 /tmp/image
+sudo mount /tmp/image/bliss-x86-11.13/system.img /tmp/system
+
+# system is now mounted at /tmp/system
+# for example, disable adb security
+sudo tee -a /tmp/system/build.prop <<< 'ro.adb.secure=0'
+
+# unmount both disks when you're done
+sudo umount /tmp/system
+sudo umount /tmp/image
+sudo qemu-nbd -d /dev/nbd0
+
+```
+
 ### How to connect using ADB
 
 In the Android terminal emulator:
