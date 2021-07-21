@@ -84,7 +84,7 @@ docker run -it \
     -e "DISPLAY=${DISPLAY:-:0.0}" \
     -v "${PWD}/android.qcow2:/home/arch/dock-droid/android.qcow2" \
     -p 5555:5555 \
-    sickcodes/dock-droid:latest
+    sickcodes/dock-droid:naked
 ```
 
 
