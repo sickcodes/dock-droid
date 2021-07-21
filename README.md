@@ -201,10 +201,13 @@ sudo fdisk /dev/nbd0 -l
 # make another to mount the raw Android image within that resizable image.
 mkdir -p /tmp/image /tmp/system
 sudo mount /dev/nbd0p1 /tmp/image
-sudo mount /tmp/image/bliss-x86-11.13/system.img /tmp/system
 
-# system is now mounted at /tmp/system
-# for example, disable adb security
+# put some keys in the box and copy to your host ~/.android folder
+adb keygen /tmp/image/bliss-x86-11.13/data/misc/adb/id_dockdroid
+cp /tmp/image/bliss-x86-11.13/data/misc/adb/* ~/.android/
+
+# if you want to mount system.img, for example, to disable adb security
+sudo mount /tmp/image/bliss-x86-11.13/system.img /tmp/system
 sudo tee -a /tmp/system/build.prop <<< 'ro.adb.secure=0'
 
 # unmount both disks when you're done
