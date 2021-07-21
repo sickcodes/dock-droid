@@ -198,6 +198,8 @@ ENV NETWORKING=vmxnet3
 ENV LIBGUESTFS_DEBUG=1
 ENV LIBGUESTFS_TRACE=1
 
+ENV PATH="${PATH}:/opt/android-sdk/platform-tools"
+
 # dynamic RAM options for runtime
 ENV RAM=4
 # ENV RAM=max
