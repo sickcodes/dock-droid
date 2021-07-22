@@ -192,6 +192,7 @@ Then, mount other Android related disks, from inside that image.
 GRUB is also in there.
 
 ```bash
+# on the host
 # enable qemu-nbd for network device mounting
 sudo modprobe nbd
 sudo qemu-nbd --connect=/dev/nbd0 android.qcow2 -f qcow2
@@ -199,25 +200,73 @@ sudo fdisk /dev/nbd0 -l
 
 # make a folder to mount the whole resizable image 
 # make another to mount the raw Android image within that resizable image.
-mkdir -p /tmp/image /tmp/system
+mkdir -p /tmp/image /tmp/system /tmp/ramdisk
 sudo mount /dev/nbd0p1 /tmp/image
 
 # put some keys in the box and copy to your host ~/.android folder
-adb keygen /tmp/image/bliss-x86-11.13/data/misc/adb/id_dockdroid
-cp /tmp/image/bliss-x86-11.13/data/misc/adb/* ~/.android/
+
+mkdir -p /tmp/image/bliss-x86-11.13/data/.android
+mkdir -p /tmp/image/bliss-x86-11.13/data/misc/adb
+
+KEYNAME=id_dockdroid
+adb keygen "/tmp/image/bliss-x86-11.13/data/misc/adb/${KEYNAME}"
+tee /tmp/image/bliss-x86-11.13/data/misc/adb/adb_keys < ~/.android/"${KEYNAME}.pub"
 
 # if you want to mount system.img, for example, to disable adb security
 sudo mount /tmp/image/bliss-x86-11.13/system.img /tmp/system
-sudo tee -a /tmp/system/build.prop <<< 'ro.adb.secure=0'
+# sudo mount /tmp/image/bliss-x86-11.13/ramdisk.img /tmp/ramdisk
+sudo tee \
+    -a /tmp/system/build.prop \
+    -a /tmp/system/product/build.prop \
+    -a /tmp/system/vendor/build.prop \
+    <<< 'ro.adb.secure=0'
+
+sudo tee \
+    -a /tmp/system/build.prop \
+    -a /tmp/system/product/build.prop \
+    -a /tmp/system/vendor/build.prop \
+    <<< 'persist.service.adb.enable=1'
+
+sudo tee \
+    -a /tmp/system/build.prop \
+    -a /tmp/system/product/build.prop \
+    -a /tmp/system/vendor/build.prop \
+    <<< 'persist.service.debuggable=1'
+
+sudo tee \
+    -a /tmp/system/build.prop \
+    -a /tmp/system/product/build.prop \
+    -a /tmp/system/vendor/build.prop \
+    <<< 'persist.sys.usb.config=mtp,adb'
 
 # unmount both disks when you're done
 sudo umount /tmp/system
 sudo umount /tmp/image
 sudo qemu-nbd -d /dev/nbd0
+```
 
+Boot the container.
+
+Open `Terminal Emulator` in the Android:
+```bash
+# on android
+su
+start adbd
+```
+
+Use the new key to `adb` into the guest:
+
+```bash
+# on the host
+export ADB_VENDOR_KEYS=~/.android/id_dockdroid
+adb kill-server
+adb connect localhost
+adb -s localhost:5555 shell
 ```
 
 ### How to connect using ADB
+
+Boot into DEBUG MODE from the GRUB boot menu.
 
 In the Android terminal emulator:
 
