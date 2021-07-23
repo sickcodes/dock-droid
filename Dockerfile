@@ -218,6 +218,7 @@ RUN touch Launch.sh \
     && chmod +x ./Launch.sh \
     && tee -a Launch.sh <<< '#!/bin/bash' \
     && tee -a Launch.sh <<< 'set -eux' \
+    && tee -a Launch.sh <<< 'source /etc/profile.d/android-sdk-platform-tools.sh' \
     && tee -a Launch.sh <<< 'sudo chown    $(id -u):$(id -g) /dev/kvm 2>/dev/null || true' \
     && tee -a Launch.sh <<< 'sudo chown -R $(id -u):$(id -g) /dev/snd 2>/dev/null || true' \
     && tee -a Launch.sh <<< 'sudo chown -R $(id -u):$(id -g) /dev/video{0..10} 2>/dev/null || true' \
@@ -236,13 +237,15 @@ RUN touch Launch.sh \
     && tee -a Launch.sh <<< '-device ${NETWORKING:-vmxnet3},netdev=net0,id=net0,mac=${MAC_ADDRESS:-00:11:22:33:44:55} \' \
     && tee -a Launch.sh <<< '-monitor stdio \' \
     && tee -a Launch.sh <<< '-vga vmware \' \
+    && tee -a Launch.sh <<< '-boot menu=on \' \
     && tee -a Launch.sh <<< '-cdrom "${CDROM:-${CDROM}}" \' \
     && tee -a Launch.sh <<< '${WEBCAM:-} \' \
     && tee -a Launch.sh <<< '${EXTRA:-}'
 
 VOLUME ["/tmp/.X11-unix"]
 
-CMD export CDROM="$(basename "${CDROM_IMAGE_URL}")" \
+CMD export CDROM="${CDROM:="$(basename "${CDROM_IMAGE_URL}")"}" \
     && touch ./android.qcow2 ./*.iso \
     && ./enable-ssh.sh \
     && /bin/bash -c ./Launch.sh
+

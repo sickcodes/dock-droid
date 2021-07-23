@@ -163,8 +163,28 @@ docker run -it \
     sickcodes/dock-droid:latest
 ```
 
+### UEFI BOOT
+
+Add the following: `--bios /usr/share/OVMF/x64/OVMF.fd \` to Launch.sh
+
+Or as a `docker run` argument:
+
+UEFI Boot
+```bash
+docker run -it \
+    --device /dev/kvm \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e "DISPLAY=${DISPLAY:-:0.0}" \
+    -p 5555:5555 \
+    -e EXTRA='--bios /usr/share/OVMF/x64/OVMF.fd' \
+    sickcodes/dock-droid:latest
+```
+
 ### Custom Build
 
+To use an alternative `CDROM`, you have two choices: runtime or buildtime.
+
+You can add your image to the Dockerfile during the build:
 
 ```bash
 
@@ -175,6 +195,36 @@ docker build \
     -e CDROM_IMAGE_URL="${CDROM_IMAGE_URL}" .
 
 ```
+
+**OR** you can add it during runtime to the docker hub images as follows.
+
+```console
+    -v "${CDROM}:/cdrom" \
+    -e CDROM=/cdrom \
+
+```
+For example:
+
+```bash
+# full path to your image on the host
+CDROM="${HOME}/Downloads/image.iso"
+
+docker run -it \
+    --device /dev/kvm \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e "DISPLAY=${DISPLAY:-:0.0}" \
+    -p 5555:5555 \
+    -v "${CDROM}:/cdrom" \
+    -e CDROM=/cdrom \
+    sickcodes/dock-droid:latest
+```
+
+
+### Force Boot CDROM QEMU
+
+`-boot d ` will force QEMU to boot from the CDROM.
+
+`-e EXTRA='-boot d ' \`
 
 ### Naked Container
 
@@ -261,6 +311,7 @@ Use the new key to `adb` into the guest:
 export ADB_VENDOR_KEYS=~/.android/id_dockdroid
 adb kill-server
 adb connect localhost
+adb root
 adb -s localhost:5555 shell
 ```
 
@@ -444,3 +495,54 @@ Now VNC connect using the Docker container IP, for example `172.17.0.2:5999`
 Remote VNC over SSH: `ssh -N root@1.1.1.1 -L  5999:172.17.0.2:5999`, where `1.1.1.1` is your remote server IP and `172.17.0.2` is your LAN container IP.
 
 Now you can direct connect VNC to any container built with this command!
+
+
+# BlissOS Image Builder Using Platform Manifests
+
+**This requires 250GB of REAL space.**
+
+This was previously at `./build`, but due to Docker Hub using the wrong README.md file, I have added these instructions below:
+
+Make and add a non-root user
+```bash
+
+USERADD=user
+useradd "${USERADD}" -p "${USERADD}"
+tee -a /etc/sudoers <<< "${USERADD} ALL=(ALL) NOPASSWD: ALL"
+mkdir -p "/home/${USERADD}"
+chown "${USERADD}:${USERADD}" "/home/${USERADD}"
+
+# passwd user <<EOF
+# 1000
+# 1000
+# EOF
+
+chsh -s /bin/bash "${USERADD}"
+
+usermod -aG docker "${USERADD}"
+
+su user
+
+```
+
+```bash
+
+BUILD_DIRECTORY=/mnt/volume_nyc3_01
+
+# create a persistent folder on the host for building stuff
+mkdir "${BUILD_DIRECTORY}/blissos-r36"
+
+cd "${BUILD_DIRECTORY}/blissos-r36"
+
+wget https://raw.githubusercontent.com/sickcodes/dock-droid/master/Dockerfile.build
+
+docker build -t blissos-builder .
+
+docker run -it \
+    -e REVISION=r11-r36 \
+    -e MANIFEST_REPO=https://github.com/BlissRoms-x86/manifest.git \
+    -v "${BUILD_DIRECTORY}/blissos-r36:/blissos-r36" \
+    blissos-builder
+
+```
+
