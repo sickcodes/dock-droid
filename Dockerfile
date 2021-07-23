@@ -124,8 +124,16 @@ RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
     && bsdtar -C / -xvf "${patched_glibc}" || echo "Everything is fine."
 # TEMP-FIX for pacman issue
 
-RUN sudo pacman -Syu mkinitcpio linux linux-headers libguestfs --overwrite --noconfirm \
-    && yes | sudo pacman -Scc
+
+ARG LINUX=true
+
+# required to use libguestfs inside a docker container, to create bootdisks for docker-osx on-the-fly
+RUN if [[ "${LINUX}" == true ]]; then \
+        sudo pacman -Syu linux libguestfs --overwrite --noconfirm \
+        && patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
+        && curl -LO "https://raw.githubusercontent.com/sickcodes/Docker-OSX/master/${patched_glibc}" \
+        && bsdtar -C / -xvf "${patched_glibc}" || echo "Everything is fine." \
+    ; fi
 
 # TEMP-FIX for pacman issue
 RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
