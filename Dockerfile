@@ -168,23 +168,23 @@ RUN qemu-img create -f qcow2 /home/arch/dock-droid/android.qcow2 "${QCOW_SIZE}"
 
 #### Mount disk inside container
 
-sudo modprobe nbd \
-sudo qemu-nbd --connect=/dev/nbd0 android2.qcow2 -f qcow2 \
-sudo fdisk /dev/nbd0 -l\
-mkdir /tmp/image /tmp/system
-sudo mount /dev/nbd0p1 /tmp/image
+# sudo modprobe nbd \
+# sudo qemu-nbd --connect=/dev/nbd0 android2.qcow2 -f qcow2 \
+# sudo fdisk /dev/nbd0 -l\
+# mkdir /tmp/image /tmp/system
+# sudo mount /dev/nbd0p1 /tmp/image
 
-sudo mount /tmp/image/bliss-x86-11.13/system.img /tmp/system
-sudo tee -a /tmp/system/build.prop <<< 'ro.adb.secure=0'
-sudo umount /tmp/system
-sudo umount /tmp/image
-sudo qemu-nbd -d /dev/nbd0
+# sudo mount /tmp/image/bliss-x86-11.13/system.img /tmp/system
+# sudo tee -a /tmp/system/build.prop <<< 'ro.adb.secure=0'
+# sudo umount /tmp/system
+# sudo umount /tmp/image
+# sudo qemu-nbd -d /dev/nbd0
 
+RUN wget -O supergrub2.iso https://telkomuniversity.dl.sourceforge.net/project/supergrub2/2.04s2-beta2/super_grub2_disk_2.04s2-beta2/supergrub2-2.04s2-beta2-multiarch-CD.iso
 
+# RUN sudo guestfish -a /home/user/bliss/android2.qcow2 \  
 
-RUN sudo guestfish -a /home/user/bliss/android2.qcow2 \  
-
-sudo guestmount -a android.qcow2 -m /dev/vg0 /mnt
+# sudo guestmount -a android.qcow2 -m /dev/vg0 /mnt
 
 #### SPECIAL RUNTIME ARGUMENTS BELOW
 
@@ -253,7 +253,7 @@ RUN touch Launch.sh \
 VOLUME ["/tmp/.X11-unix"]
 
 CMD export CDROM="${CDROM:="$(basename "${CDROM_IMAGE_URL}")"}" \
-    && touch ./android.qcow2 ./*.iso \
+    && touch ./android.qcow2 "${CDROM}" \
     && ./enable-ssh.sh \
     && /bin/bash -c ./Launch.sh
 
