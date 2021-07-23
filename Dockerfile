@@ -115,7 +115,7 @@ RUN touch ./enable-ssh.sh \
     && tee -a enable-ssh.sh <<< 'sudo /usr/bin/ssh-keygen -A' \
     && tee -a enable-ssh.sh <<< 'nohup sudo /usr/bin/sshd -D &'
 
-RUN yes | sudo pacman -Syyu qemu libvirt dnsmasq virt-manager bridge-utils openresolv jack ebtables edk2-ovmf netctl libvirt-dbus wget --overwrite --noconfirm \
+RUN yes | sudo pacman -Syu qemu libvirt dnsmasq virt-manager bridge-utils openresolv jack ebtables edk2-ovmf netctl libvirt-dbus wget --overwrite --noconfirm \
     && yes | sudo pacman -Scc
 
 # TEMP-FIX for pacman issue
@@ -124,7 +124,7 @@ RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst \
     && bsdtar -C / -xvf "${patched_glibc}" || echo "Everything is fine."
 # TEMP-FIX for pacman issue
 
-RUN sudo pacman -Syyu linux linux-headers libguestfs --overwrite --noconfirm \
+RUN sudo pacman -Syu mkinitcpio linux linux-headers libguestfs --overwrite --noconfirm \
     && yes | sudo pacman -Scc
 
 # TEMP-FIX for pacman issue
