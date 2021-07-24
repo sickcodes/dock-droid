@@ -337,6 +337,9 @@ mkdir -p /tmp/image/bliss-x86-11.13/data/misc/adb
 
 KEYNAME=adbkey
 adb keygen ~/.android/"${KEYNAME}"
+touch ~/.android/"${KEYNAME}.pub"
+adb pubkey ~/.android/"${KEYNAME}" > ~/.android/"${KEYNAME}.pub"
+
 tee /tmp/image/bliss-x86-11.13/data/misc/adb/adb_keys < ~/.android/"${KEYNAME}.pub"
 
 # if you want to mount system.img, for example, to disable adb security
