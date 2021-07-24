@@ -197,6 +197,7 @@ ENV BOOT_ARGS=
 
 # edit the CPU that is beign emulated
 ENV CPU=host
+ENV CPUID_FLAGS='+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check,'
 
 ENV DISPLAY=:0.0
 
@@ -234,7 +235,7 @@ RUN touch Launch.sh \
     && tee -a Launch.sh <<< 'sudo chown -R $(id -u):$(id -g) /dev/video{0..10} 2>/dev/null || true' \
     && tee -a Launch.sh <<< 'sudo qemu-system-x86_64 -m ${RAM:-4}000 \' \
     && tee -a Launch.sh <<< '${ENABLE_KVM:-"-enable-kvm"} \' \
-    && tee -a Launch.sh <<< '-cpu host,+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check, \' \
+    && tee -a Launch.sh <<< '-cpu ${CPU:-host},${CPUID_FLAGS:-"+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check,"}${BOOT_ARGS} \' \
     && tee -a Launch.sh <<< '-smp ${CPU_STRING:-$(nproc)} \' \
     && tee -a Launch.sh <<< '-machine q35,${KVM-"accel=kvm:tcg"} \' \
     && tee -a Launch.sh <<< '-smp ${CPU_STRING:-${SMP:-4},cores=${CORES:-4}} \' \
