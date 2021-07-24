@@ -388,10 +388,10 @@ Use the new key to `adb` into the guest:
 
 ```bash
 # on the host
-export ADB_VENDOR_KEYS=~/.android/id_dockdroid
+export ADB_VENDOR_KEYS=~/.android/adbkey
 adb kill-server
 adb connect localhost
-adb root
+adb -s localhost:5555 root
 adb -s localhost:5555 shell
 ```
 
