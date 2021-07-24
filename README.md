@@ -86,6 +86,7 @@ docker run -it \
     -p 5555:5555 \
     sickcodes/dock-droid:naked
 
+```
 ### Run without KVM
 
 Change the `CPU` from `host` to `qemu64`
