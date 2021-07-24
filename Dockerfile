@@ -92,6 +92,15 @@ RUN git clone https://aur.archlinux.org/android-sdk-platform-tools.git \
     && makepkg -si --nocheck --force --noconfirm \
     ; source /etc/profile.d/android-sdk-platform-tools.sh || exit 1
 
+RUN git clone https://aur.archlinux.org/binfmt-qemu-static.git \
+    && cd binfmt-qemu-static \
+    && makepkg -si --nocheck --force --noconfirm || exit 1
+
+RUN git clone https://aur.archlinux.org/qemu-user-static-bin.git \
+    && cd qemu-user-static-bin \
+    && makepkg -si --nocheck --force --noconfirm || exit 1
+
+
 WORKDIR /home/arch
 
 # TEMP-FIX for pacman issue
@@ -234,12 +243,12 @@ RUN touch Launch.sh \
     && tee -a Launch.sh <<< 'sudo chown -R $(id -u):$(id -g) /dev/snd 2>/dev/null || true' \
     && tee -a Launch.sh <<< 'sudo chown -R $(id -u):$(id -g) /dev/video{0..10} 2>/dev/null || true' \
     && tee -a Launch.sh <<< 'sudo qemu-system-x86_64 -m ${RAM:-4}000 \' \
-    && tee -a Launch.sh <<< '${ENABLE_KVM:-"-enable-kvm"} \' \
-    && tee -a Launch.sh <<< '-cpu ${CPU:-host},${CPUID_FLAGS:-"+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check,"}${BOOT_ARGS} \' \
+    && tee -a Launch.sh <<< '${ENABLE_KVM-"-enable-kvm"} \' \
+    && tee -a Launch.sh <<< '-cpu ${CPU-host},${CPUID_FLAGS-"+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check,"}${BOOT_ARGS} \' \
     && tee -a Launch.sh <<< '-smp ${CPU_STRING:-$(nproc)} \' \
     && tee -a Launch.sh <<< '-machine q35,${KVM-"accel=kvm:tcg"} \' \
     && tee -a Launch.sh <<< '-smp ${CPU_STRING:-${SMP:-4},cores=${CORES:-4}} \' \
-    && tee -a Launch.sh <<< '-hda "${IMAGE_PATH}" \' \
+    && tee -a Launch.sh <<< '-hda "${IMAGE_PATH:=/home/arch/dock-droid/android.qcow2}" \' \
     && tee -a Launch.sh <<< '-usb -device usb-kbd -device usb-tablet \' \
     && tee -a Launch.sh <<< '-smbios type=2 \' \
     && tee -a Launch.sh <<< '-audiodev ${AUDIO_DRIVER:-alsa},id=hda -device ich9-intel-hda -device hda-duplex,audiodev=hda \' \

@@ -64,6 +64,10 @@ sudo modprobe kvm
 
 ## Quick Start Dock-Droid
 
+You can run the Live OS image, or install to disk.
+
+Connect to the WiFi network called `VirtWifi`.
+
 ### BlissOS x86 Image [![https://img.shields.io/docker/image-size/sickcodes/dock-droid/latest?label=sickcodes%2Fdock-droid%3Alatest](https://img.shields.io/docker/image-size/sickcodes/dock-droid/latest?label=sickcodes%2Fdock-droid%3Alatest)](https://hub.docker.com/r/sickcodes/dock-droid/tags?page=1&ordering=last_updated)
 
 ```bash
@@ -87,61 +91,110 @@ docker run -it \
     sickcodes/dock-droid:naked
 
 ```
-### Run without KVM
 
-Change the `CPU` from `host` to `qemu64`
+### Run without KVM (Work in Progress)
 
-Unset `ENABLE_KVM`, which is `-enable-kvm`
+This will boot, but currently does not "work". 
 
-Unset `KVM`, which is `accel=kvm:tcg`
+Change `CPU` to `Penryn`, which is normally `host`
+
+Change `ENABLE_KVM`, which is normally `-enable-kvm`
+    
+Change `KVM`, which is normally `accel=kvm:tcg`
+
+Change `CPUID_FLAGS`, which is normally very long.
 
 ```
+# use a spacebar in quotes
 -e CPU=qemu64 \
--e ENABLE_KVM= \
--e KVM= \
+-e ENABLE_KVM=' ' \
+-e KVM=' ' \
+-e CPUID_FLAGS=' ' \
 ```
 
-For example:
+For example **(Work in Progress)**:
 
 ```bash
 docker run -it \
-    -e CPU=qemu64 \
-    -e ENABLE_KVM= \
-    -e KVM= \
+    -e CPU=Penryn \
+    -e ENABLE_KVM=' ' \
+    -e KVM=' ' \
+    -e CPUID_FLAGS=' ' \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -e "DISPLAY=${DISPLAY:-:0.0}" \
     -p 5555:5555 \
     sickcodes/dock-droid:latest
 ```
 
-Increase RAM by adding this line: `-e RAM=4 \`
+### Increase RAM
 
-Want to use your WebCam and Audio too?
+Increase RAM by adding this line: `-e RAM=10 \` for 10GB.
+
+## Docker Virtual Machine WebCam
+
+![Android WebCam Passthrough SPICE USBREDIR QEMU Android x86](/Android-WebCam-Passthrough-QEMU-Android-x86.png?raw=true "Android WebCam Passthrough SPICE USBREDIR QEMU Android x86")
+
+Want to use your Laptop/USB WebCam and Audio too?
+
+There are two options: **usb passthrough**, or **usb redirect (network)**.
 
 `v4l2-ctl --list-devices`
 
-`lsusb` to get the `hostbus` and `hostaddr`
+`lsusb`
+
+Find the `hostbus` and `hostaddr`:
 
 ```console
 Bus 003 Device 003: ID 13d3:56a2 IMC Networks USB2.0 HD UVC WebCam
 ```
-
 Would be `-device usb-host,hostbus=3,hostaddr=3`
 
+### Passthrough Android Camera over USB
 
 ```bash
 docker run -it \
-    --privileged \
     --device /dev/kvm \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -e "DISPLAY=${DISPLAY:-:0.0}" \
     -p 5555:5555 \
-    -p 50922:10022 \
-    --device /dev/video0 \
     -e EXTRA='-device usb-host,hostbus=3,hostaddr=3' \
-    --device /dev/snd \
     sickcodes/dock-droid:latest
 ```
+
+### Passthrough Android WebCam Camera over the Network!
+
+```console
+lsusb
+# Bus 003 Device 003: ID 13d3:56a2 IMC Networks USB2.0 HD UVC WebCam
+```
+
+Vendor ID is `13d3`
+Product ID is `56a2`
+
+In one Terminal on host:
+```bash
+sudo usbredirserver -p 7700 13d3:56a2
+```
+
+In another Terminal on host:
+
+```bash
+# 172.17.0.1 is the IP of the Docker Bridge, usually the host, but you can change this to anything.
+PORT=7700
+IP_ADDRESS=172.17.0.1
+
+docker run -it \
+    --device /dev/kvm \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e "DISPLAY=${DISPLAY:-:0.0}" \
+    -p 5555:5555 \
+    -e EXTRA="-chardev socket,id=usbredirchardev1,port=${PORT},host=${IP_ADDRESS} -device usb-redir,chardev=usbredirchardev1,id=usbredirdev1,bus=ehci.0,debug=4" \
+    sickcodes/dock-droid:latest
+```
+
+### Android x86 Docker GPU & Hardware Acceleration
+
+Currently in development by BlissOS team: mesa graphics card + OpenGL3.2.
 
 Want to use SwiftShader acceleration?
 
@@ -158,8 +211,6 @@ docker run -it \
     -e EXTRA='-display sdl,gl=on' \
     sickcodes/dock-droid:latest
 ```
-
-In development by BlissOS team: mesa graphics card + OpenGL3.2.
 
 ### Use your own image/naked version
 
