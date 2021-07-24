@@ -335,8 +335,8 @@ sudo mount /dev/nbd0p1 /tmp/image
 mkdir -p /tmp/image/bliss-x86-11.13/data/.android
 mkdir -p /tmp/image/bliss-x86-11.13/data/misc/adb
 
-KEYNAME=id_dockdroid
-adb keygen "/tmp/image/bliss-x86-11.13/data/misc/adb/${KEYNAME}"
+KEYNAME=adbkey
+adb keygen ~/.android/"${KEYNAME}"
 tee /tmp/image/bliss-x86-11.13/data/misc/adb/adb_keys < ~/.android/"${KEYNAME}.pub"
 
 # if you want to mount system.img, for example, to disable adb security
