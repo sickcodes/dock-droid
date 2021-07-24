@@ -85,8 +85,33 @@ docker run -it \
     -v "${PWD}/android.qcow2:/home/arch/dock-droid/android.qcow2" \
     -p 5555:5555 \
     sickcodes/dock-droid:naked
+
+### Run without KVM
+
+Change the `CPU` from `host` to `qemu64`
+
+Unset `ENABLE_KVM`, which is `-enable-kvm`
+
+Unset `KVM`, which is `accel=kvm:tcg`
+
+```
+-e CPU=qemu64 \
+-e ENABLE_KVM= \
+-e KVM= \
 ```
 
+For example:
+
+```bash
+docker run -it \
+    -e CPU=qemu64 \
+    -e ENABLE_KVM= \
+    -e KVM= \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e "DISPLAY=${DISPLAY:-:0.0}" \
+    -p 5555:5555 \
+    sickcodes/dock-droid:latest
+```
 
 Increase RAM by adding this line: `-e RAM=4 \`
 

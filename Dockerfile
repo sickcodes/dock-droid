@@ -196,9 +196,11 @@ ENV ADDITIONAL_PORTS=
 ENV BOOT_ARGS=
 
 # edit the CPU that is beign emulated
-ENV CPU=kvm64
+ENV CPU=host
 
 ENV DISPLAY=:0.0
+
+ENV ENABLE_KVM='-enable-kvm'
 
 ENV IMAGE_PATH=/home/arch/dock-droid/android.qcow2
 ENV IMAGE_FORMAT=qcow2
@@ -231,7 +233,7 @@ RUN touch Launch.sh \
     && tee -a Launch.sh <<< 'sudo chown -R $(id -u):$(id -g) /dev/snd 2>/dev/null || true' \
     && tee -a Launch.sh <<< 'sudo chown -R $(id -u):$(id -g) /dev/video{0..10} 2>/dev/null || true' \
     && tee -a Launch.sh <<< 'sudo qemu-system-x86_64 -m ${RAM:-4}000 \' \
-    && tee -a Launch.sh <<< '-enable-kvm \' \
+    && tee -a Launch.sh <<< '${ENABLE_KVM:-"-enable-kvm"} \' \
     && tee -a Launch.sh <<< '-cpu host,+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check, \' \
     && tee -a Launch.sh <<< '-smp ${CPU_STRING:-$(nproc)} \' \
     && tee -a Launch.sh <<< '-machine q35,${KVM-"accel=kvm:tcg"} \' \
