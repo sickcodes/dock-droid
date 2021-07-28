@@ -242,7 +242,7 @@ docker run -it \
 
 ### UEFI BOOT
 
-Add the following: `--bios /usr/share/OVMF/x64/OVMF.fd \` to Launch.sh
+Add the following: `-bios /usr/share/OVMF/x64/OVMF.fd \` to Launch.sh
 
 Or as a `docker run` argument:
 
@@ -253,7 +253,7 @@ docker run -it \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -e "DISPLAY=${DISPLAY:-:0.0}" \
     -p 5555:5555 \
-    -e EXTRA='--bios /usr/share/OVMF/x64/OVMF.fd' \
+    -e EXTRA='-bios /usr/share/OVMF/x64/OVMF.fd' \
     sickcodes/dock-droid:latest
 ```
 
