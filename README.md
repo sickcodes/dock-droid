@@ -310,28 +310,158 @@ Reduces the image size by 600Mb if you are using a local directory disk image:
 docker cp  image_name /home/arch/dock-droid/android.qcow2 .
 ```
 
-### Modify image
+# Modifying the Android filesystem.
 
-Mount the main `qcow2` file using `libguestfstools`
+The following groups of commands is for editing `android.qcow2`.
 
-Then, mount other Android related disks, from inside that image.
+First, we will mount the main `qcow2` file using `libguestfstools`
+
+Then, inside that qcow2 image, there are:
+`system.img`
+`ramdisk.img`
 
 GRUB is also in there.
+
+Mount the qcow2 using:
 
 ```bash
 # on the host
 # enable qemu-nbd for network device mounting
+# wget -O android.qcow2 https://image.sick.codes/android.BlissOS_Stable.qcow2
+
 sudo modprobe nbd
 sudo qemu-nbd --connect=/dev/nbd0 android.qcow2 -f qcow2
 sudo fdisk /dev/nbd0 -l
+mkdir -p /tmp/image
+sudo mount /dev/nbd0p1 /tmp/image
+```
 
+Now you can mount the internal disks in other places...
+```bash
 # make a folder to mount the whole resizable image 
 # make another to mount the raw Android image within that resizable image.
-mkdir -p /tmp/image /tmp/system /tmp/ramdisk
-sudo mount /dev/nbd0p1 /tmp/image
+mkdir -p /tmp/system
+sudo mount /tmp/image/bliss-x86-11.13/system.img /tmp/system
 
+ls /tmp/system
+ls /tmp/image/bliss-x86-11.13
+# don't forget to unmount
+```
+
+### Swap from Houdini to `ndk_translation` Android x86
+
+Thanks to [Frank from Redroid](https://github.com/zhouziyang)!
+
+[https://github.com/remote-android/redroid-doc/tree/master/native_bridge](https://github.com/remote-android/redroid-doc/tree/master/native_bridge)
+
+```bash
+sudo cp ./native-bridge.tar /tmp/
+cd /tmp
+
+# warning, this will extract overwriting /etc/system/... so make sure you're in /tmp
+sudo tar -xvf ./native-bridge.tar
+
+# sudo cp ./nativebridge.rc /tmp/system/vendor/etc/init/nativebridge.rc
+# sudo rm ./nativebridge.rc /tmp/system/vendor/etc/init/houdini.rc
+
+sudo sed -i '/ro.dalvik.vm.native.bridge=0/d' /tmp/system/build.prop
+sudo sed -i '/ro.product.cpu.abilist32=/d' /tmp/system/build.prop
+sudo sed -i '/ro.product.cpu.abilist=/d' /tmp/system/build.prop
+sudo sed -i '/ro.product.cpu.abi=/d' /tmp/system/build.prop
+
+sudo tee -a /tmp/system/build.prop <<'EOF'
+ro.dalvik.vm.native.bridge=libndk_translation.so
+ro.product.cpu.abilist=x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+ro.product.cpu.abilist32=x86,armeabi-v7a,armeabi
+ro.ndk_translation.version=0.2.2
+EOF
+# don't forget to unmount
+```
+
+### Enable ADB INSECURE Android x86 BlissOS
+
+```bash
+sudo tee -a /tmp/system/build.prop <<'EOF'
+persist.service.adb.enable=1                                                    
+persist.service.debuggable=1
+persist.sys.usb.config=mtp,adb
+ro.allow.mock.location=1
+persist.adb.notify=0
+persist.sys.usb.config=mtp,adb
+ro.secure=0
+ro.adb.secure=0
+ro.debuggable=1
+service.adb.root=1
+persist.sys.root_access=1
+persist.service.adb.enable=1
+EOF
+# don't forget to unmount
+```
+
+### Enable even more insecure Android x86 BlissOS
+```bash
+sudo tee -a /tmp/system/build.prop <<'EOF'
+ro.boot.selinux=permissive
+androidboot.selinux=permissive
+persist.android.strictmode=0
+persist.selinux.enforcing=0
+ro.build.selinux.enforce=0
+security.perf_harden=0
+selinux.reload_policy=0
+selinux.sec.restorecon=0
+
+persist.sys.strict_op_enable=false
+persist.sys.strictmode.disable=1
+persist.sys.strictmode.visual=false
+ro.config.knox=0
+sys.knox.exists=0
+sys.knox.store=0
+dev.knoxapp.running=false
+init.svc.knox=stopped
+ro.config.sec_storage=0
+ro.securestorage.knox=false
+ro.securestorage.support=false
+ro.config.tima=0
+ro.config.timaversion=0
+ro.sec.fle.encryption=false
+persist.security.ams.enforcing=0
+ro.config.kap_default_on=false
+ro.config.rkp=false
+drm.service.enabled=false
+init.svc.drm=stopped
+init.svc.mediadrm=stopped
+init.svc.drmservice=stopped
+oma_drm.service.enabled=false
+
+EOF
+# don't forget to unmount
+```
+
+# Install Magisk using [https://github.com/axonasif/rusty-magisk](rusty-magisk) by [@axonasif](https://github.com/axonasif)
+
+Inside the `ramdisk.img`, we would like to overwrite `init` with `rusty-magisk`
+
+```bash
+mkdir -p /tmp/ramdisk
+cd /tmp/ramdisk
+
+zcat /tmp/image/bliss-x86-11.13/ramdisk.img | cpio -iud && mv /tmp/ramdisk/init /tmp/ramdisk/init.real
+
+sudo wget -O /tmp/ramdisk/init https://github.com/axonasif/rusty-magisk/releases/download/v0.1.7/rusty-magisk_x86_64 
+
+sudo chmod a+x /tmp/ramdisk/init
+sudo touch /tmp/image/bliss-x86-11.13/ramdisk.img:
+sudo /bin/bash -c "find . | cpio -o -H newc | sudo gzip > /tmp/image/bliss-x86-11.13/ramdisk.img"
+# don't forget to unmount
+```
+
+During the next boot you will have Magisk installed.
+
+
+### Add secure ADB keys.
+
+```bash
 # put some keys in the box and copy to your host ~/.android folder
-
 mkdir -p /tmp/image/bliss-x86-11.13/data/.android
 mkdir -p /tmp/image/bliss-x86-11.13/data/misc/adb
 
@@ -341,50 +471,42 @@ touch ~/.android/"${KEYNAME}.pub"
 adb pubkey ~/.android/"${KEYNAME}" > ~/.android/"${KEYNAME}.pub"
 
 tee /tmp/image/bliss-x86-11.13/data/misc/adb/adb_keys < ~/.android/"${KEYNAME}.pub"
+# don't forget to unmount
+```
 
-# if you want to mount system.img, for example, to disable adb security
-sudo mount /tmp/image/bliss-x86-11.13/system.img /tmp/system
+# Unmount when finished
+
+After completing any of the above automation, you need to unmount the disk.
+
+```bash
 # sudo mount /tmp/image/bliss-x86-11.13/ramdisk.img /tmp/ramdisk
-sudo tee \
-    -a /tmp/system/build.prop \
-    -a /tmp/system/product/build.prop \
-    -a /tmp/system/vendor/build.prop \
-    <<< 'ro.adb.secure=0'
-
-sudo tee \
-    -a /tmp/system/build.prop \
-    -a /tmp/system/product/build.prop \
-    -a /tmp/system/vendor/build.prop \
-    <<< 'persist.service.adb.enable=1'
-
-sudo tee \
-    -a /tmp/system/build.prop \
-    -a /tmp/system/product/build.prop \
-    -a /tmp/system/vendor/build.prop \
-    <<< 'persist.service.debuggable=1'
-
-sudo tee \
-    -a /tmp/system/build.prop \
-    -a /tmp/system/product/build.prop \
-    -a /tmp/system/vendor/build.prop \
-    <<< 'persist.sys.usb.config=mtp,adb'
-
 # unmount both disks when you're done
 sudo umount /tmp/system
 sudo umount /tmp/image
 sudo qemu-nbd -d /dev/nbd0
 ```
 
+# Misc Optimizations
+
+Great list by [@eladkarako](https://github.com/eladkarako)
+
+[https://gist.github.com/eladkarako/5694eada31277fdc75cee4043461372e](https://gist.github.com/eladkarako/5694eada31277fdc75cee4043461372e)
+
+## Run adb/start adbd
+
 Boot the container.
 
 Open `Terminal Emulator` in the Android:
+
 ```bash
 # on android
 su
 start adbd
+
+# setprop persist.adb.tcp.port 5555
 ```
 
-Use the new key to `adb` into the guest:
+Now, from the host, use the new key to `adb` into the guest:
 
 ```bash
 # on the host
@@ -395,15 +517,18 @@ adb -s localhost:5555 root
 adb -s localhost:5555 shell
 ```
 
-### How to connect using ADB
+In the Android terminal emulator, run `adbd`
 
-Boot into DEBUG MODE from the GRUB boot menu.
+Then from the host, you can can connect using either:
+`adb connect localhost:5555`
 
-In the Android terminal emulator:
+`adb connect 172.17.0.2:5555`
 
-Edit `/default.prop`
+If you have more than "one emulator" you may have to use:
 
-Change `ro.adb.secure=1` to `ro.adb.secure=0`
+`adb -s localhost:5555 shell`
+
+`adb -s 172.17.0.2:5555 shell`
 
 E.g.
 
@@ -551,8 +676,12 @@ docker run -it \
 ```
 
 
+### Convert BlissOS Virtual Box to Dock-Droid
 
 
+```bash
+qemu-img convert -f vdi -O qcow2 BlissOS.vdi android.qcow2
+```
 
 ## Building a headless container to run remotely with secure VNC
 
