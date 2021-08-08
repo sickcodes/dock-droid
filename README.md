@@ -5,6 +5,9 @@
 Docker Android - Run QEMU Android x86 and Android ARM in a Docker! X11 Forwarding! CI/CD for Android!
 
 ## Capabilities
+- Security Research of ARM apps on x86!
+- ADB on port `:5555`
+- Magisk, riru, LSPosed on Android x86
 - SSH enabled (`localhost:50922`)
 - SCRCPY enabled (`localhost:5555`)
 - WebCam forwarding enabled (`/dev/video0`)
@@ -443,15 +446,18 @@ Inside the `ramdisk.img`, we would like to overwrite `init` with `rusty-magisk`
 
 ```bash
 mkdir -p /tmp/ramdisk
-cd /tmp/ramdisk
 
+sudo /bin/bash -c "
+cd /tmp/ramdisk
 zcat /tmp/image/bliss-x86-11.13/ramdisk.img | cpio -iud && mv /tmp/ramdisk/init /tmp/ramdisk/init.real
 
-sudo wget -O /tmp/ramdisk/init https://github.com/axonasif/rusty-magisk/releases/download/v0.1.7/rusty-magisk_x86_64 
+wget -O /tmp/ramdisk/init https://github.com/axonasif/rusty-magisk/releases/download/v0.1.7/rusty-magisk_x86_64 
 
-sudo chmod a+x /tmp/ramdisk/init
-sudo touch /tmp/image/bliss-x86-11.13/ramdisk.img:
-sudo /bin/bash -c "find . | cpio -o -H newc | sudo gzip > /tmp/image/bliss-x86-11.13/ramdisk.img"
+chmod a+x /tmp/ramdisk/init
+touch /tmp/image/bliss-x86-11.13/ramdisk.img:
+/bin/bash -c 'find . | cpio -o -H newc | sudo gzip > /tmp/image/bliss-x86-11.13/ramdisk.img'
+"
+sudo rm -rf /tmp/ramdisk
 # don't forget to unmount
 ```
 

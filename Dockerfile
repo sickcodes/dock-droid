@@ -111,10 +111,10 @@ RUN yes | sudo pacman -Syu qemu libvirt dnsmasq virt-manager bridge-utils openre
 
 ARG LINUX=true
 
-# required to use libguestfs inside a docker container, to create bootdisks for docker-osx on-the-fly
-RUN if [[ "${LINUX}" == true ]]; then \
-        sudo pacman -Syu linux libguestfs --overwrite --noconfirm \
-    ; fi
+# # required to use libguestfs inside a docker container, to create bootdisks for docker-osx on-the-fly
+# RUN if [[ "${LINUX}" == true ]]; then \
+#         sudo pacman -Syu linux libguestfs --overwrite --noconfirm \
+#     ; fi
 
 ARG COMPLETE=true
 
