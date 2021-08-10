@@ -492,6 +492,24 @@ sudo umount /tmp/image
 sudo qemu-nbd -d /dev/nbd0
 ```
 
+# Use Frida
+```bash
+# choose a version from https://github.com/frida/frida/releases/
+RELEASE_LINK='https://github.com/frida/frida/releases/download/15.0.8/frida-server-15.0.8-android-x86_64.xz'
+HOST=localhost
+
+mkdir -p frida
+cd frida
+
+wget "${RELEASE_LINK}"
+unxz -d "$(basename "${RELEASE_LINK}")"
+mv frida-server-15.0.8-android-x86_64 frida-server
+
+adb -s localhost:5555 push frida-server /data/local/tmp/frida-server
+adb -s localhost:5555 shell "chmod 770 /data/local/tmp/frida-server"
+adb -s localhost:5555 shell "/data/local/tmp/frida-server &"
+```
+
 # Misc Optimizations
 
 Great list by [@eladkarako](https://github.com/eladkarako)
