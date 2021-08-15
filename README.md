@@ -492,22 +492,30 @@ sudo umount /tmp/image
 sudo qemu-nbd -d /dev/nbd0
 ```
 
-# Use Frida
+# Use Frida (latest)
 ```bash
 # choose a version from https://github.com/frida/frida/releases/
-RELEASE_LINK='https://github.com/frida/frida/releases/download/15.0.8/frida-server-15.0.8-android-x86_64.xz'
-HOST=localhost
+HOST_ARCH=x86_64
+GUEST_SYS=android
+FRIDA_RELEASE=frida-server
 
-mkdir -p frida
-cd frida
+FRIDA_RELEASES=($(curl https://github.com/frida/frida/releases | grep -Po "(?<=\<a\ href\=\")(\/frida\/frida\/releases\/download\/\d+\.\d.\d+\/${FRIDA_RELEASE}-\d+\.\d+.\d+-${GUEST_SYS}-${HOST_ARCH}.xz)(?=\"\ )"))
+
+RELEASE_LINK="https://github.com${FRIDA_RELEASES[0]}"
+# RELEASE_LINK='https://github.com/frida/frida/releases/download/15.0.8/frida-server-15.0.8-android-x86_64.xz'
+
+
+mkdir -p ./frida
+cd ./frida
 
 wget "${RELEASE_LINK}"
 unxz -d "$(basename "${RELEASE_LINK}")"
-mv frida-server-15.0.8-android-x86_64 frida-server
+find -name "${FRIDA_RELEASE}-*.*.*-${GUEST_SYS}-${HOST_ARCH}" | xargs -i mv "{}" frida-server
 
 adb -s localhost:5555 push frida-server /data/local/tmp/frida-server
-adb -s localhost:5555 shell "chmod 770 /data/local/tmp/frida-server"
-adb -s localhost:5555 shell "/data/local/tmp/frida-server &"
+adb -s localhost:5555 shell "su -c chmod 755 /data/local/tmp/frida-server"
+adb -s localhost:5555 shell "/data/local/tmp/frida-server"
+
 ```
 
 # Misc Optimizations
