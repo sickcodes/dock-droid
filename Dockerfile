@@ -106,7 +106,7 @@ RUN touch ./enable-ssh.sh \
     && tee -a enable-ssh.sh <<< 'sudo /usr/bin/ssh-keygen -A' \
     && tee -a enable-ssh.sh <<< 'nohup sudo /usr/bin/sshd -D &'
 
-RUN yes | sudo pacman -Syu qemu libvirt dnsmasq virt-manager bridge-utils openresolv jack ebtables edk2-ovmf netctl libvirt-dbus wget --overwrite --noconfirm \
+RUN yes | sudo pacman -Syu qemu virglrenderer libvirt dnsmasq virt-manager bridge-utils openresolv jack ebtables edk2-ovmf netctl libvirt-dbus wget --overwrite --noconfirm \
     && yes | sudo pacman -Scc
 
 ARG LINUX=true
@@ -175,6 +175,7 @@ ENV CPU=host
 ENV CPUID_FLAGS='+invtsc,vmware-cpuid-freq=on,+pcid,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check,'
 
 ENV DISPLAY=:0.0
+ENV DISPLAY_ARGUMENTS='-vga vmware'
 
 ENV ENABLE_KVM='-enable-kvm'
 
@@ -222,9 +223,9 @@ RUN touch Launch.sh \
     && tee -a Launch.sh <<< '-netdev user,id=net0,hostfwd=tcp::${INTERNAL_SSH_PORT:-10022}-:22,hostfwd=tcp::${SCREEN_SHARE_PORT:-5900}-:5900,hostfwd=tcp::${ADB_PORT:-5555}-:5555,${ADDITIONAL_PORTS} \' \
     && tee -a Launch.sh <<< '-device ${NETWORKING:-vmxnet3},netdev=net0,id=net0,mac=${MAC_ADDRESS:-00:11:22:33:44:55} \' \
     && tee -a Launch.sh <<< '-monitor stdio \' \
-    && tee -a Launch.sh <<< '-vga vmware \' \
     && tee -a Launch.sh <<< '-boot menu=on \' \
     && tee -a Launch.sh <<< '-cdrom "${CDROM:-${CDROM}}" \' \
+    && tee -a Launch.sh <<< '${DISPLAY_ARGUMENTS:=-vga vmware} \' \
     && tee -a Launch.sh <<< '${WEBCAM:-} \' \
     && tee -a Launch.sh <<< '${EXTRA:-}'
 
