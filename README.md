@@ -82,6 +82,20 @@ docker run -it \
     sickcodes/dock-droid:latest
 ```
 
+Headlessly (on a server, or locally)
+
+```bash
+docker run -it \
+    --device /dev/kvm \
+    -e EXTRA="-display none -vnc 0.0.0.0:99,password=on" \
+    -p 5555:5555 \
+    -p 5999:5999 \
+    sickcodes/dock-droid:latest
+```
+For headless, in the QEMU console, type `change vnc password user`
+
+And then connect on `localhost:5999`, or the server IP, or Docker IP.
+
 ### No Image (:naked) [![https://img.shields.io/docker/image-size/sickcodes/dock-droid/naked?label=sickcodes%2Fdock-droid%3Anaked](https://img.shields.io/docker/image-size/sickcodes/dock-droid/naked?label=sickcodes%2Fdock-droid%3Anaked)](https://hub.docker.com/r/sickcodes/dock-droid/tags?page=1&ordering=last_updated)
 
 ```bash
