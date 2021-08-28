@@ -372,85 +372,86 @@ Thanks to [Frank from Redroid](https://github.com/zhouziyang)!
 [https://github.com/remote-android/redroid-doc/tree/master/native_bridge](https://github.com/remote-android/redroid-doc/tree/master/native_bridge)
 
 ```bash
-sudo cp ./native-bridge.tar /tmp/
-cd /tmp
-
 # warning, this will extract overwriting /etc/system/... so make sure you're in /tmp
-sudo tar -xvf ./native-bridge.tar
+cd /tmp \
+    && sudo wget https://github.com/sickcodes/dock-droid/raw/master/native-bridge.tar.gz \
+    && sudo tar -xzvf native-bridge.tar.gz \
+    && sudo rm native-bridge.tar.gz
 
-# sudo cp ./nativebridge.rc /tmp/system/vendor/etc/init/nativebridge.rc
-# sudo rm ./nativebridge.rc /tmp/system/vendor/etc/init/houdini.rc
+sudo touch /tmp/system/vendor/etc/init/nativebridge.rc
+sudo tee /tmp/system/vendor/etc/init/nativebridge.rc <<EOF
+on early-init
+    setprop ro.product.cpu.abilist x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+    setprop ro.product.cpu.abilist64 x86_64,arm64-v8a
+    setprop ro.product.cpu.abilist32 x86,armeabi-v7a,armeabi
+    setprop ro.dalvik.vm.isa.arm x86
+    setprop ro.dalvik.vm.isa.arm64 x86_64
+    setprop ro.enable.native.bridge.exec 1
+    setprop ro.dalvik.vm.native.bridge libndk_translation.so
+    setprop ro.ndk_translation.version 0.2.2
+EOF
 
-sudo sed -i '/ro.dalvik.vm.native.bridge=0/d' /tmp/system/build.prop
-sudo sed -i '/ro.product.cpu.abilist32=/d' /tmp/system/build.prop
-sudo sed -i '/ro.product.cpu.abilist=/d' /tmp/system/build.prop
-sudo sed -i '/ro.product.cpu.abi=/d' /tmp/system/build.prop
 
-sudo tee -a /tmp/system/build.prop <<'EOF'
-ro.dalvik.vm.native.bridge=libndk_translation.so
-ro.product.cpu.abilist=x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+# # Enable native bridge for target executables
+# on early-init
+#     mount binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+
+# on property:ro.enable.native.bridge.exec=1
+#     copy /system/etc/binfmt_misc/arm_exe /proc/sys/fs/binfmt_misc/register
+#     copy /system/etc/binfmt_misc/arm_dyn /proc/sys/fs/binfmt_misc/register
+
+# on property:ro.enable.native.bridge.exec64=1
+#     copy /system/etc/binfmt_misc/arm64_exe /proc/sys/fs/binfmt_misc/register
+#     copy /system/etc/binfmt_misc/arm64_dyn /proc/sys/fs/binfmt_misc/register
+
+
+# add armeabi
+sudo sed -i -e 's/abilist32\=x86\,armeabi\-v7a/abilist32\=x86\,armeabi\-v7a\,armeabi/g' /tmp/system/vendor/build.prop
+sudo sed -i -e 's/abilist\=x86_64\,x86\,arm64\-v8a\,armeabi\-v7a/abilist\=x86_64\,x86\,arm64\-v8a\,armeabi\-v7a\,armeabi/g' /tmp/system/vendor/build.prop
+
+sudo rm /tmp/system/bin/enable_nativebridge \
+    /tmp/system/etc/binfmt_misc/arm_exe \
+    /tmp/system/etc/binfmt_misc/arm64_dyn \
+    /tmp/system/etc/binfmt_misc/arm_dyn \
+    /tmp/system/etc/binfmt_misc/arm64_exe
+
+sudo rm /tmp/system/vendor/etc/binfmt_misc/*
+
+sudo rm /tmp/system/etc/init/houdini.rc
+
+sudo tee -a /tmp/system/product/build.prop \
+    -a /tmp/system/vendor/build.prop \
+    -a /tmp/system/build.prop <<EOF
+ro.product.cpu.abilist64=x86_64,arm64-v8a
 ro.product.cpu.abilist32=x86,armeabi-v7a,armeabi
-ro.ndk_translation.version=0.2.2
-EOF
-# don't forget to unmount
-```
-
-### Enable ADB INSECURE Android x86 BlissOS
-
-```bash
-sudo tee -a /tmp/system/build.prop <<'EOF'
-persist.service.adb.enable=1                                                    
-persist.service.debuggable=1
-persist.sys.usb.config=mtp,adb
-ro.allow.mock.location=1
-persist.adb.notify=0
-persist.sys.usb.config=mtp,adb
+ro.dalvik.vm.isa.arm=x86
+ro.dalvik.vm.isa.arm64=x86_64
+ro.enable.native.bridge.exec=1
+ro.dalvik.vm.native.bridge=libndk_translation.so
 ro.secure=0
-ro.adb.secure=0
 ro.debuggable=1
+ro.adb.secure=0
 service.adb.root=1
-persist.sys.root_access=1
-persist.service.adb.enable=1
 EOF
-# don't forget to unmount
-```
 
-### Enable even more insecure Android x86 BlissOS
-```bash
-sudo tee -a /tmp/system/build.prop <<'EOF'
-ro.boot.selinux=permissive
-androidboot.selinux=permissive
-persist.android.strictmode=0
-persist.selinux.enforcing=0
-ro.build.selinux.enforce=0
-security.perf_harden=0
-selinux.reload_policy=0
-selinux.sec.restorecon=0
+# also swap libhoudini to libndk_translation in the ramdisk
+mkdir -p /tmp/ramdisk
+sudo /bin/bash -c "
+cd /tmp/ramdisk \
+    && zcat /tmp/image/bliss-x86-11.13/ramdisk.img | cpio -iud \
+    && sed -i -e 's/libhoudini/libndk_translation/g' /tmp/ramdisk/default.prop
+    && touch /tmp/image/bliss-x86-11.13/ramdisk.img
+    && { find . | cpio -o -H newc | gzip > /tmp/ramdisk.img.new ; } \
+    && mv /tmp/ramdisk.img.new /tmp/image/bliss-x86-11.13/ramdisk.img'
+"
 
-persist.sys.strict_op_enable=false
-persist.sys.strictmode.disable=1
-persist.sys.strictmode.visual=false
-ro.config.knox=0
-sys.knox.exists=0
-sys.knox.store=0
-dev.knoxapp.running=false
-init.svc.knox=stopped
-ro.config.sec_storage=0
-ro.securestorage.knox=false
-ro.securestorage.support=false
-ro.config.tima=0
-ro.config.timaversion=0
-ro.sec.fle.encryption=false
-persist.security.ams.enforcing=0
-ro.config.kap_default_on=false
-ro.config.rkp=false
-drm.service.enabled=false
-init.svc.drm=stopped
-init.svc.mediadrm=stopped
-init.svc.drmservice=stopped
-oma_drm.service.enabled=false
+# sudo tee -a /tmp/system/build.prop <<'EOF'
+# ro.dalvik.vm.native.bridge=libndk_translation.so
+# ro.product.cpu.abilist=x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+# ro.product.cpu.abilist32=x86,armeabi-v7a,armeabi
+# ro.ndk_translation.version=0.2.2
+# EOF
 
-EOF
 # don't forget to unmount
 ```
 
@@ -468,7 +469,7 @@ zcat /tmp/image/bliss-x86-11.13/ramdisk.img | cpio -iud && mv /tmp/ramdisk/init 
 wget -O /tmp/ramdisk/init https://github.com/axonasif/rusty-magisk/releases/download/v0.1.7/rusty-magisk_x86_64 
 
 chmod a+x /tmp/ramdisk/init
-touch /tmp/image/bliss-x86-11.13/ramdisk.img:
+touch /tmp/image/bliss-x86-11.13/ramdisk.img
 /bin/bash -c 'find . | cpio -o -H newc | sudo gzip > /tmp/image/bliss-x86-11.13/ramdisk.img'
 "
 sudo rm -rf /tmp/ramdisk
@@ -481,15 +482,15 @@ During the next boot you will have Magisk installed.
 ### Add secure ADB keys.
 
 ```bash
-# put some keys in the box and copy to your host ~/.android folder
-mkdir -p /tmp/image/bliss-x86-11.13/data/.android
-mkdir -p /tmp/image/bliss-x86-11.13/data/misc/adb
-
+# generate keys if you don't have already
 KEYNAME=adbkey
 adb keygen ~/.android/"${KEYNAME}"
 touch ~/.android/"${KEYNAME}.pub"
 adb pubkey ~/.android/"${KEYNAME}" > ~/.android/"${KEYNAME}.pub"
 
+# put some keys in the box and copy to your host ~/.android folder
+mkdir -p /tmp/image/bliss-x86-11.13/data/.android
+mkdir -p /tmp/image/bliss-x86-11.13/data/misc/adb
 tee /tmp/image/bliss-x86-11.13/data/misc/adb/adb_keys < ~/.android/"${KEYNAME}.pub"
 # don't forget to unmount
 ```
@@ -501,6 +502,7 @@ After completing any of the above automation, you need to unmount the disk.
 ```bash
 # sudo mount /tmp/image/bliss-x86-11.13/ramdisk.img /tmp/ramdisk
 # unmount both disks when you're done
+sudo umount /tmp/ramdisk
 sudo umount /tmp/system
 sudo umount /tmp/image
 sudo qemu-nbd -d /dev/nbd0
@@ -509,7 +511,9 @@ sudo qemu-nbd -d /dev/nbd0
 # Use Frida (latest)
 ```bash
 # choose a version from https://github.com/frida/frida/releases/
+# use arm if you're debugging arm apps, via houdini or native bridge (ndk)
 HOST_ARCH=x86_64
+# HOST_ARCH=arm
 GUEST_SYS=android
 FRIDA_RELEASE=frida-server
 
@@ -551,6 +555,8 @@ start adbd
 
 # setprop persist.adb.tcp.port 5555
 ```
+
+Connect to the virtual WiFi inside Android!
 
 Now, from the host, use the new key to `adb` into the guest:
 
