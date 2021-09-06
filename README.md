@@ -32,6 +32,19 @@ This project is heavily based on Docker-OSX: https://github.com/sickcodes/Docker
 
 <a href="https://hub.docker.com/r/sickcodes/dock-droid"><img src="https://dockeri.co/image/sickcodes/dock-droid"/></a>
 
+### Related:
+- Next Generation Anbox Style LXC:
+
+[https://github.com/sickcodes/droid-native](https://github.com/sickcodes/droid-native)
+
+- Android in a Docker using [BlissOS](https://blissos.org/):
+
+[https://github.com/sickcodes/dock-droid](https://github.com/sickcodes/dock-droid)
+
+- binder(fs) and ashmem for use in anbox related 5.7+ Kernel distribuitons (soon to be all):
+
+[https://github.com/sickcodes/anbox-modules-dkms](https://github.com/sickcodes/anbox-modules-dkms)
+
 ### Requirements
 
 - 4GB disk space for bare minimum installation
