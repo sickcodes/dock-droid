@@ -380,7 +380,9 @@ ls /tmp/image/bliss-x86-11.13
 
 ### Swap from Houdini to `ndk_translation` Android x86
 
-Thanks to [Frank from Redroid](https://github.com/zhouziyang)!
+Extract the native-bridge using the following: https://github.com/sickcodes/Droid-NDK-Extractor
+
+Thanks to [Frank from Redroid](https://github.com/zhouziyang) for the idea!
 
 [https://github.com/remote-android/redroid-doc/tree/master/native_bridge](https://github.com/remote-android/redroid-doc/tree/master/native_bridge)
 
