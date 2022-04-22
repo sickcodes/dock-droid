@@ -451,14 +451,14 @@ EOF
 
 # also swap libhoudini to libndk_translation in the ramdisk
 mkdir -p /tmp/ramdisk
-sudo /bin/bash -c "
-cd /tmp/ramdisk \
-    && zcat /tmp/image/bliss-x86-11.13/ramdisk.img | cpio -iud \
-    && sed -i -e 's/libhoudini/libndk_translation/g' /tmp/ramdisk/default.prop
-    && touch /tmp/image/bliss-x86-11.13/ramdisk.img
-    && { find . | cpio -o -H newc | gzip > /tmp/ramdisk.img.new ; } \
-    && mv /tmp/ramdisk.img.new /tmp/image/bliss-x86-11.13/ramdisk.img'
-"
+sudo /bin/bash -c "cd /tmp/ramdisk \
+    && zcat /tmp/image/bliss-x86-11.13/ramdisk.img \
+    | cpio -iud"
+
+sed -i -e 's/libhoudini/libndk_translation/g' /tmp/ramdisk/default.prop
+touch /tmp/image/bliss-x86-11.13/ramdisk.img
+find . | cpio -o -H newc | gzip > /tmp/ramdisk.img.new
+mv /tmp/ramdisk.img.new /tmp/image/bliss-x86-11.13/ramdisk.img
 
 # sudo tee -a /tmp/system/build.prop <<'EOF'
 # ro.dalvik.vm.native.bridge=libndk_translation.so
